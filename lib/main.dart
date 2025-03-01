@@ -1,11 +1,36 @@
 import 'package:flutter/material.dart';
-import 'screens/home_page.dart';
+import 'screens/auth/home_page.dart';
+import 'screens/listen_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  bool _isLoading = true;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final authCookie = await _secureStorage.read(key: 'auth');
+    setState(() {
+      _isAuthenticated = authCookie != null;
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,7 +38,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      home: _isLoading 
+          ? Center(child: CircularProgressIndicator()) 
+          : _isAuthenticated ? MusicAppHomePage() : HomePage(),
     );
   }
 }

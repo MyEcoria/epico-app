@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'confirmation_page.dart';
 import 'home_page.dart';
 
@@ -44,12 +45,27 @@ class _LoginPageState extends State<LoginPage> {
   bool _hasSpecialChar = false;
   String _passwordStrength = "";
   bool _isEmailValid = false;
+  final _secureStorage = const FlutterSecureStorage();
+  String? _cookieValue;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validatePassword);
     _emailController.addListener(_validateEmail);
+    _loadCookie();
+  }
+
+  _loadCookie() async {
+    String? value = await _secureStorage.read(key: 'auth');
+    setState(() {
+      _cookieValue = value;
+    });
+  }
+
+  _storeCookie() async {
+    await _secureStorage.write(key: 'auth', value: 'example_cookie_value');
+    _loadCookie(); // Met à jour l'interface utilisateur
   }
 
   @override
@@ -129,6 +145,9 @@ class _LoginPageState extends State<LoginPage> {
               controller: _emailController,
               style: const TextStyle(color: Colors.white),
               keyboardType: TextInputType.emailAddress,
+              inputFormatters: [
+                LowerCaseTextFormatter(),
+              ],
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey[800],
@@ -220,10 +239,11 @@ class _LoginPageState extends State<LoginPage> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _isFormValid ? () {
+                  _storeCookie();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ConfirmationPage(),
+                      builder: (context) => HomePage(),
                     ),
                   );
                 } : null,

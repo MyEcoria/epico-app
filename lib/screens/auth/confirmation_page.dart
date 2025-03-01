@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login_page.dart';
 
 class ConfirmationPage extends StatelessWidget {
   @override
@@ -22,7 +23,12 @@ class ConfirmationPage extends StatelessWidget {
             SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
-                // Logique pour la connexion
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LoginPage(),
+                  ),
+                );
               },
               child: Text('Login'),
               style: ElevatedButton.styleFrom(

@@ -1,9 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:deezer_app/screens/email_page.dart';
-import 'package:deezer_app/screens/login_page.dart';
+import 'package:deezer_app/screens/auth/email_page.dart';
+import 'package:deezer_app/screens/auth/login_page.dart';
+import 'package:deezer_app/screens/listen_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final authToken = await _storage.read(key: 'auth');
+    if (authToken != null) {
+      // If auth token exists, navigate to listen page
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => MusicAppHomePage()),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +67,17 @@ class HomePage extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
+              // SizedBox(height: 90),
+              // RotationTransition(
+              //   turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+              //   child: Image.asset(
+              //     'assets/vinyle.png',
+              //     width: 200,
+              //     height: 200,
+              //     fit: BoxFit.contain,
+              //   ),
+              // ),
+              // SizedBox(height: 20),
               Spacer(),
               // Boutons
               ElevatedButton(
