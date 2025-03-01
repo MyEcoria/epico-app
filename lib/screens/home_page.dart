@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:deezer_app/screens/email_page.dart';
+import 'package:deezer_app/screens/login_page.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -79,7 +80,10 @@ class HomePage extends StatelessWidget {
               SizedBox(height: 15),
               TextButton(
                 onPressed: () {
-                  // Logique pour la connexion
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,

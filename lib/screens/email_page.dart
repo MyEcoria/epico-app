@@ -50,7 +50,8 @@ class _EmailScreenState extends State<EmailScreen> {
   void _validateEmail() {
     setState(() {
       final email = _emailController.text;
-      _isValidEmail = email.contains('@') && email.endsWith('@epitech.eu');
+      _isValidEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+      _isValidEmail = _isValidEmail && email.endsWith('@epitech.eu');
     });
   }
 
