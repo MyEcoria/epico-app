@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'confirmation_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -175,7 +176,14 @@ class _PasswordScreenState extends State<PasswordScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isPasswordValid ? () {} : null,
+                onPressed: _isPasswordValid ? () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConfirmationPage(),
+                    ),
+                  );
+                } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),
