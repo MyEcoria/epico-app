@@ -37,6 +37,7 @@ dependencies:
   flutter_svg: ^1.0.0
   flutter_secure_storage: ^9.2.4
   just_audio: ^0.9.46
+  audioplayers: ^6.2.0
 
 dev_dependencies:
   flutter_test:
