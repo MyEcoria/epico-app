@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,41 +33,104 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MusicAppHomePage extends StatelessWidget {
+class MusicAppHomePage extends StatefulWidget {
   const MusicAppHomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                _buildRecentlyPlayed(),
-                const SizedBox(height: 24),
-                _buildFlowSection(),
-                const SizedBox(height: 24),
-                _buildMixesForYou(),
-                const SizedBox(height: 24),
-                _buildArtistsYouFollow(),
-                const SizedBox(height: 24),
-                _buildNewReleases(),
-                const SizedBox(height: 24),
-                _buildRecommendedPlaylists(),
-              ],
+  _MusicAppHomePageState createState() => _MusicAppHomePageState();
+}
+
+class _MusicAppHomePageState extends State<MusicAppHomePage> {
+  AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  void _playPause(String url) async {
+    if (_isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer.play(UrlSource(url));
+    }
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+  }
+
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.black,
+    body: Stack(
+      children: [
+        // Contenu principal de la page
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 80), // ajustez selon la hauteur du lecteur
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 24),
+                  _buildRecentlyPlayed(),
+                  const SizedBox(height: 24),
+                  _buildFlowSection(),
+                  const SizedBox(height: 24),
+                  _buildMixesForYou(),
+                  const SizedBox(height: 24),
+                  _buildArtistsYouFollow(),
+                  const SizedBox(height: 24),
+                  _buildNewReleases(),
+                  const SizedBox(height: 24),
+                  _buildRecommendedPlaylists(),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNavigation(),
-    );
-  }
+        // Lecteur audio positionné en bas
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: AudioPlayerWidget(
+            audioPlayer: _audioPlayer,
+            currentSongTitle: "Blinding Lights",
+            currentArtist: "The Weeknd",
+            albumArtUrl: "https://example.com/album_cover.jpg",
+            duration: const Duration(minutes: 3, seconds: 45),
+            onPlayPause: () => _playPause("https://dl.sndup.net/q4ksm/Quack%20Quest.mp3"),
+            onNext: () {
+              // Implémentez la logique du morceau suivant
+            },
+            onPrevious: () {
+              // Implémentez la logique du morceau précédent
+            },
+            isPlaying: _isPlaying,
+            lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
+            isFavorite: false,
+            onToggleFavorite: () {
+              // Implémentez le basculement du favori
+            },
+            onShare: () {
+              // Implémentez la fonctionnalité de partage
+            },
+            nextSongTitle: "Save Your Tears",
+            nextSongArtist: "The Weeknd",
+          ),
+        ),
+      ],
+    ),
+    bottomNavigationBar: _buildBottomNavigation(),
+  );
+}
+
 
   Widget _buildHeader() {
     return Row(
@@ -168,16 +233,19 @@ class MusicAppHomePage extends StatelessWidget {
                 ),
               ),
               if (hasPlayButton)
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black54,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 24,
+                GestureDetector(
+                  onTap: () => _playPause("https://dl.sndup.net/q4ksm/Quack%20Quest.mp3"),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black54,
+                    ),
+                    child: Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
             ],

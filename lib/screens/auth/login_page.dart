@@ -76,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     super.dispose();
   }
+  
 
   void _validateEmail() {
     final email = _emailController.text;
