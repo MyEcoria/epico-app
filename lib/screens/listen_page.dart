@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'widget.dart';
+import 'song_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,28 +41,28 @@ class MusicAppHomePage extends StatefulWidget {
 }
 
 class _MusicAppHomePageState extends State<MusicAppHomePage> {
-  AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isPlaying = false;
-
+  final SongManager _songManager = SongManager();
+  
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    _songManager.dispose();
     super.dispose();
   }
 
-  void _playPause(String url) async {
-    if (_isPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      await _audioPlayer.play(UrlSource(url));
-    }
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
+  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = ""}) async {
+    await _songManager.togglePlaySong(
+      name: name, 
+      description: description, 
+      songUrl: songUrl, 
+      pictureUrl: pictureUrl,
+    );
+    setState(() {});
   }
 
   @override
 Widget build(BuildContext context) {
+  bool isPlaying = _songManager.isPlaying();
+  final songState = _songManager.getSongState();
   return Scaffold(
     backgroundColor: Colors.black,
     body: Stack(
@@ -100,19 +100,18 @@ Widget build(BuildContext context) {
           right: 0,
           bottom: 0,
           child: AudioPlayerWidget(
-            audioPlayer: _audioPlayer,
-            currentSongTitle: "Blinding Lights",
-            currentArtist: "The Weeknd",
-            albumArtUrl: "https://example.com/album_cover.jpg",
+            songManager: _songManager,
+            // Remove audioPlayer parameter as it's not defined in AudioPlayerWidget
+            currentSongTitle: songState['name'] ?? "Blinding Lights",
+            currentArtist: "The Weeknd", // You may want to add artist to your SongManager
+            albumArtUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
             duration: const Duration(minutes: 3, seconds: 45),
-            onPlayPause: () => _playPause("https://dl.sndup.net/q4ksm/Quack%20Quest.mp3"),
-            onNext: () {
-              // Implémentez la logique du morceau suivant
-            },
-            onPrevious: () {
-              // Implémentez la logique du morceau précédent
-            },
-            isPlaying: _isPlaying,
+            onPlayPause: () => _playPause(
+              songState['songUrl'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+              name: songState['name'] ?? "Blinding Lights",
+              description: songState['description'] ?? "",
+              pictureUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+            ),
             lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
             isFavorite: false,
             onToggleFavorite: () {
@@ -121,8 +120,15 @@ Widget build(BuildContext context) {
             onShare: () {
               // Implémentez la fonctionnalité de partage
             },
+            isPlaying: isPlaying,
             nextSongTitle: "Save Your Tears",
             nextSongArtist: "The Weeknd",
+            onNext: () {
+              // Implement next song functionality
+            },
+            onPrevious: () {
+              // Implement previous song functionality
+            },
           ),
         ),
       ],
@@ -232,20 +238,27 @@ Widget build(BuildContext context) {
                   ),
                 ),
               ),
-              if (hasPlayButton)
+                if (hasPlayButton)
                 GestureDetector(
-                  onTap: () => _playPause("https://dl.sndup.net/q4ksm/Quack%20Quest.mp3"),
+                  onTap: () {
+                  _playPause(
+                    "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                    name: title,
+                    pictureUrl: imagePath,
+                    description: "Song from your collection"
+                  );
+                  },
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black54,
-                    ),
-                    child: Icon(
-                      _isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black54,
+                  ),
+                  child: Icon(
+                    _songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                   ),
                 ),
             ],

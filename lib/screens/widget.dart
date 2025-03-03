@@ -1,40 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
+// Import SongManager
+import 'song_manage.dart';
+
 class AudioPlayerWidget extends StatefulWidget {
-  final AudioPlayer audioPlayer;
+  final SongManager songManager;
   final String currentSongTitle;
   final String currentArtist;
   final String albumArtUrl;
   final Duration duration;
   final VoidCallback onPlayPause;
-  final VoidCallback onNext;
-  final VoidCallback onPrevious;
-  final bool isPlaying;
   final String lyricsExcerpt;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
   final VoidCallback onShare;
+  final bool isPlaying;
   final String nextSongTitle;
   final String nextSongArtist;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
 
   const AudioPlayerWidget({
     Key? key,
-    required this.audioPlayer,
+    required this.songManager,
     required this.currentSongTitle,
     required this.currentArtist,
     required this.albumArtUrl,
     required this.duration,
-    required this.onPlayPause,
     required this.onNext,
     required this.onPrevious,
-    required this.isPlaying,
     required this.lyricsExcerpt,
     required this.isFavorite,
     required this.onToggleFavorite,
     required this.onShare,
     required this.nextSongTitle,
     required this.nextSongArtist,
+    required this.isPlaying,
+    required this.onPlayPause,
   }) : super(key: key);
 
   @override
@@ -45,21 +48,66 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   Duration _position = Duration.zero;
   double _dragValue = 0.0;
   bool _isDragging = false;
+  bool _isPlaying = false;
+  late AudioPlayer _audioPlayer;
 
   @override
   void initState() {
     super.initState();
+    // Get the AudioPlayer from SongManager
+    _audioPlayer = widget.songManager.getAudioPlayer();
+    // Update isPlaying from SongManager
+    _isPlaying = widget.songManager.isPlaying();
     _setupPositionListener();
   }
 
   void _setupPositionListener() {
-    widget.audioPlayer.onPositionChanged.listen((position) {
+    _audioPlayer.onPositionChanged.listen((position) {
       if (!_isDragging && mounted) {
         setState(() {
           _position = position;
         });
       }
     });
+    
+    // Listen for play state changes
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
+    });
+  }
+
+  // Handle play/pause toggle using SongManager
+  void _handlePlayPause() {
+    if (_isPlaying) {
+      _audioPlayer.pause();
+      setState(() {
+        _isPlaying = false;
+      });
+    } else {
+      // If we already have a current song URL in SongManager
+      Map<String, dynamic> currentState = widget.songManager.getSongState();
+      if (currentState['songUrl'] != null) {
+        _audioPlayer.resume();
+        setState(() {
+          _isPlaying = true;
+        });
+      } else {
+        // This is a fallback, normally you'd have a current song to play
+        widget.songManager.togglePlaySong(
+          name: widget.currentSongTitle,
+          description: widget.currentArtist,
+          songUrl: "YOUR_DEFAULT_SONG_URL", // Replace with actual URL
+          pictureUrl: widget.albumArtUrl,
+        );
+        setState(() {
+          _isPlaying = true;
+        });
+      }
+    }
   }
 
   String _formatDuration(Duration duration) {
@@ -157,11 +205,11 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             // Play/pause button
             IconButton(
               icon: Icon(
-                widget.isPlaying ? Icons.pause : Icons.play_arrow,
+                _isPlaying ? Icons.pause : Icons.play_arrow,
                 color: Colors.white,
                 size: 28,
               ),
-              onPressed: widget.onPlayPause,
+              onPressed: _handlePlayPause,
             ),
           ],
         ),
@@ -170,11 +218,21 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   Widget _buildExpandedPlayer(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
+    
+    // Utilisation de calculs adaptatifs pour les dimensions
+    final double artworkSize = screenWidth * 0.7 < screenHeight * 0.35 
+      ? screenWidth * 0.7 
+      : screenHeight * 0.35;
     
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
       minChildSize: 0.5,
+      // Ajout de snapPoints pour contrôler les positions d'arrêt
+      snapSizes: const [0.5, 0.95],
+      // Ajout du comportement de snap
+      snap: true,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: const BoxDecoration(
@@ -186,7 +244,10 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           ),
           child: ListView(
             controller: scrollController,
-            padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
+            padding: EdgeInsets.symmetric(
+              vertical: screenHeight * 0.02,
+              horizontal: screenWidth * 0.06,
+            ),
             children: [
               // Drag handle
               Center(
@@ -199,7 +260,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.02),
               // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -220,30 +281,35 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
-              // Album artwork
-              Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: MediaQuery.of(context).size.width * 0.8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+              SizedBox(height: screenHeight * 0.03),
+              // Album artwork - taille adaptative
+              Center(
+                child: Container(
+                  width: artworkSize,
+                  height: artworkSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                    image: DecorationImage(
+                      image: NetworkImage(widget.albumArtUrl),
+                      fit: BoxFit.cover,
                     ),
-                  ],
-                  image: DecorationImage(
-                    image: NetworkImage(widget.albumArtUrl),
-                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: screenHeight * 0.03),
               // Lyrics excerpt
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: screenHeight * 0.01,
+                ),
                 child: Text(
                   widget.lyricsExcerpt,
                   textAlign: TextAlign.center,
@@ -254,7 +320,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.015),
               // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,7 +366,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: screenHeight * 0.015),
               // Progress bar
               Row(
                 children: [
@@ -337,7 +403,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                             final newPosition = Duration(
                               milliseconds: (value * widget.duration.inMilliseconds).round(),
                             );
-                            widget.audioPlayer.seek(newPosition);
+                            _audioPlayer.seek(newPosition);
                             _position = newPosition;
                           });
                         },
@@ -350,8 +416,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
-              // Playback controls
+              SizedBox(height: screenHeight * 0.03),
+              // Playback controls - taille adaptative
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -359,27 +425,28 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                     icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
                     onPressed: widget.onPrevious,
                   ),
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        widget.isPlaying ? Icons.pause : Icons.play_arrow,
+                  // Correction du bouton de lecture
+                  GestureDetector(
+                    onTap: _handlePlayPause,
+                    child: Container(
+                      width: screenWidth * 0.15 > 60 ? screenWidth * 0.15 : 60,
+                      height: screenWidth * 0.15 > 60 ? screenWidth * 0.15 : 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        _isPlaying ? Icons.pause : Icons.play_arrow,
                         color: Colors.black,
                         size: 38,
                       ),
-                      onPressed: widget.onPlayPause,
                     ),
                   ),
                   IconButton(
@@ -388,37 +455,37 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.02),
               // Next song info
-              // Container(
-              //   padding: const EdgeInsets.all(16),
-              //   decoration: BoxDecoration(
-              //     color: Colors.white.withOpacity(0.1),
-              //     borderRadius: BorderRadius.circular(8),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       const Icon(Icons.queue_music, color: Colors.white70),
-              //       const SizedBox(width: 16),
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             const Text(
-              //               "Next",
-              //               style: TextStyle(color: Colors.white70, fontSize: 12),
-              //             ),
-              //             Text(
-              //               "${widget.nextSongTitle} · ${widget.nextSongArtist}",
-              //               style: const TextStyle(color: Colors.white, fontSize: 14),
-              //               overflow: TextOverflow.ellipsis,
-              //             ),
-              //           ],
-              //         ),
-              //       )
-              //     ],
-              //   ),
-              // ),
+              Container(
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.queue_music, color: Colors.white70),
+                    SizedBox(width: screenWidth * 0.04),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Next",
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            "${widget.nextSongTitle} · ${widget.nextSongArtist}",
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ],
           ),
         );
