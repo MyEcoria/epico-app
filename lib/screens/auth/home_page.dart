@@ -4,6 +4,7 @@ import 'package:deezer_app/screens/auth/email_page.dart';
 import 'package:deezer_app/screens/auth/login_page.dart';
 import 'package:deezer_app/screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:deezer_app/screens/song_manage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final SongManager songManager = SongManager();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
@@ -29,7 +31,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (authToken != null) {
       // If auth token exists, navigate to listen page
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => MusicAppHomePage()),
+        MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
       );
     }
   }

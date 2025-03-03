@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  static bool PLAYING = false;
   bool _isPlaying = false;
   String? _currentSongName;
   String? _currentSongUrl;
@@ -16,6 +17,9 @@ class SongManager {
   bool isPlaying() {
     return _audioPlayer.state == PlayerState.playing;
   }
+
+  Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
+  Stream<Duration> get positionStream => _audioPlayer.onPositionChanged;
 
   // Function to play or stop a song
   Future<void> togglePlaySong({

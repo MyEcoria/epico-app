@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'screens/song_manage.dart'; // Update with the correct path
 
 void main() {
   runApp(MyApp());
@@ -40,7 +41,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: _isLoading 
           ? Center(child: CircularProgressIndicator()) 
-          : _isAuthenticated ? MusicAppHomePage() : HomePage(),
+          : _isAuthenticated ? MusicAppHomePage(songManager: SongManager()) : HomePage(),
     );
   }
 }

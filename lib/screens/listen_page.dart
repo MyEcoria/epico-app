@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,115 +28,112 @@ class MyApp extends StatelessWidget {
           unselectedItemColor: Colors.white70,
         ),
       ),
-      home: const MusicAppHomePage(),
+      home: MusicAppHomePage(songManager: SongManager()),
     );
   }
 }
 
 class MusicAppHomePage extends StatefulWidget {
-  const MusicAppHomePage({Key? key}) : super(key: key);
+  final SongManager songManager;
+
+  const MusicAppHomePage({Key? key, required this.songManager}) : super(key: key);
 
   @override
   _MusicAppHomePageState createState() => _MusicAppHomePageState();
 }
 
 class _MusicAppHomePageState extends State<MusicAppHomePage> {
-  final SongManager _songManager = SongManager();
-  
   @override
   void dispose() {
-    _songManager.dispose();
+    widget.songManager.dispose();
     super.dispose();
   }
 
   void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = ""}) async {
-    await _songManager.togglePlaySong(
-      name: name, 
-      description: description, 
-      songUrl: songUrl, 
+    await widget.songManager.togglePlaySong(
+      name: name,
+      description: description,
+      songUrl: songUrl,
       pictureUrl: pictureUrl,
     );
     setState(() {});
   }
 
   @override
-Widget build(BuildContext context) {
-  bool isPlaying = _songManager.isPlaying();
-  final songState = _songManager.getSongState();
-  return Scaffold(
-    backgroundColor: Colors.black,
-    body: Stack(
-      children: [
-        // Contenu principal de la page
-        SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 80), // ajustez selon la hauteur du lecteur
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-                  _buildRecentlyPlayed(),
-                  const SizedBox(height: 24),
-                  _buildFlowSection(),
-                  const SizedBox(height: 24),
-                  _buildMixesForYou(),
-                  const SizedBox(height: 24),
-                  _buildArtistsYouFollow(),
-                  const SizedBox(height: 24),
-                  _buildNewReleases(),
-                  const SizedBox(height: 24),
-                  _buildRecommendedPlaylists(),
-                ],
+  Widget build(BuildContext context) {
+    bool isPlaying = widget.songManager.isPlaying();
+    final songState = widget.songManager.getSongState();
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    _buildRecentlyPlayed(),
+                    const SizedBox(height: 24),
+                    _buildFlowSection(),
+                    const SizedBox(height: 24),
+                    _buildMixesForYou(),
+                    const SizedBox(height: 24),
+                    _buildArtistsYouFollow(),
+                    const SizedBox(height: 24),
+                    _buildNewReleases(),
+                    const SizedBox(height: 24),
+                    _buildRecommendedPlaylists(),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        // Lecteur audio positionné en bas
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: AudioPlayerWidget(
-            songManager: _songManager,
-            // Remove audioPlayer parameter as it's not defined in AudioPlayerWidget
-            currentSongTitle: songState['name'] ?? "Blinding Lights",
-            currentArtist: "The Weeknd", // You may want to add artist to your SongManager
-            albumArtUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
-            duration: const Duration(minutes: 3, seconds: 45),
-            onPlayPause: () => _playPause(
-              songState['songUrl'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-              name: songState['name'] ?? "Blinding Lights",
-              description: songState['description'] ?? "",
-              pictureUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AudioPlayerWidget(
+              songManager: widget.songManager,
+              currentSongTitle: songState['name'] ?? "Blinding Lights",
+              currentArtist: "The Weeknd",
+              albumArtUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+              duration: const Duration(minutes: 3, seconds: 45),
+              onPlayPause: () => _playPause(
+                songState['songUrl'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                name: songState['name'] ?? "Blinding Lights",
+                description: songState['description'] ?? "",
+                pictureUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+              ),
+              lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
+              isFavorite: false,
+              onToggleFavorite: () {
+                // Implémentez le basculement du favori
+              },
+              onShare: () {
+                // Implémentez la fonctionnalité de partage
+              },
+              isPlaying: isPlaying,
+              nextSongTitle: "Save Your Tears",
+              nextSongArtist: "The Weeknd",
+              onNext: () {
+                // Implement next song functionality
+              },
+              onPrevious: () {
+                // Implement previous song functionality
+              },
             ),
-            lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
-            isFavorite: false,
-            onToggleFavorite: () {
-              // Implémentez le basculement du favori
-            },
-            onShare: () {
-              // Implémentez la fonctionnalité de partage
-            },
-            isPlaying: isPlaying,
-            nextSongTitle: "Save Your Tears",
-            nextSongArtist: "The Weeknd",
-            onNext: () {
-              // Implement next song functionality
-            },
-            onPrevious: () {
-              // Implement previous song functionality
-            },
           ),
-        ),
-      ],
-    ),
-    bottomNavigationBar: _buildBottomNavigation(),
-  );
-}
-
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigation(),
+    );
+  }
 
   Widget _buildHeader() {
     return Row(
@@ -255,7 +252,7 @@ Widget build(BuildContext context) {
                     color: Colors.black54,
                   ),
                   child: Icon(
-                    _songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
+                    widget.songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
                     color: Colors.white,
                     size: 24,
                   ),
