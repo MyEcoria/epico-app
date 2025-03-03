@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class MusicApiService {
-  static const String baseUrl = 'http://10.17.72.213:3000';
+  static const String baseUrl = 'http://192.168.1.53:3000';
   
   Future<List<Map<String, dynamic>>> getLatestTracks() async {
     try {

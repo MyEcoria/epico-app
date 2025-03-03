@@ -18,6 +18,10 @@ class SongManager {
     return _audioPlayer.state == PlayerState.playing;
   }
 
+  bool isPlayingSong(String songUrl) {
+    return _currentSongUrl == songUrl;
+  }
+
   Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
   Stream<Duration> get positionStream => _audioPlayer.onPositionChanged;
 

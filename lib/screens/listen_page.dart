@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../manage/widget_manage.dart';
 import '../manage/song_manage.dart';
+import '../manage/api_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -200,21 +201,38 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildAlbumCard("Inside Out", "assets/inside_out.jpg"),
-              _buildAlbumCard("Young", "assets/young.jpg", hasPlayButton: true),
-              _buildAlbumCard("Beach House", "assets/beach_house.jpg", hasPlayButton: true),
-              _buildAlbumCard("Kills You", "assets/kills_you.jpg", hasPlayButton: true),
-            ],
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: MusicApiService().getLatestTracks(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No tracks available'));
+              } else {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                final track = snapshot.data![index];
+                return _buildAlbumCard(
+                  track['name'] ?? 'Unknown Title',
+                  track['picture'] ?? 'assets/caca.jpg',
+                  track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                  hasPlayButton: true,
+                );
+                },
+              );
+              }
+            },
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildAlbumCard(String title, String imagePath, {bool hasPlayButton = false}) {
+  Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false}) {
     return Container(
       width: 120,
       margin: const EdgeInsets.only(right: 16),
@@ -230,7 +248,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   borderRadius: BorderRadius.circular(8),
                   color: Colors.grey[800],
                   image: DecorationImage(
-                    image: AssetImage(imagePath),
+                    image: NetworkImage(imagePath),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -239,10 +257,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 GestureDetector(
                   onTap: () {
                   _playPause(
-                    "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                    url,
                     name: title,
+                    description: "Song from your collection",
                     pictureUrl: imagePath,
-                    description: "Song from your collection"
                   );
                   },
                   child: Container(
@@ -252,7 +270,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     color: Colors.black54,
                   ),
                   child: Icon(
-                    widget.songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
+                    widget.songManager.isPlaying() && widget.songManager.isPlayingSong(url) ? Icons.pause : Icons.play_arrow,
                     color: Colors.white,
                     size: 24,
                   ),
@@ -291,26 +309,32 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildFlowItem("New"),
-            _buildFlowItem("Train"),
-            _buildFlowItem("Party"),
-            _buildFlowItem("Sad"),
-            _buildFlowItem("Chill"),
+            _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
+            _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
+            _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
+            _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
+            _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildFlowItem(String title) {
+  Widget _buildFlowItem(String title, [String? imageUrl]) {
     return Column(
       children: [
         Container(
           width: 60,
           height: 60,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFF333333), // Darker gray
+            color: const Color(0xFF333333), // Darker gray
+            image: imageUrl != null
+                ? DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                  )
+                : null,
           ),
         ),
         const SizedBox(height: 8),
@@ -555,10 +579,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _buildAlbumCard("After Hours", "assets/after_hours.jpg", hasPlayButton: true),
-              _buildAlbumCard("Renaissance", "assets/renaissance.jpg"),
-              _buildAlbumCard("Midnights", "assets/midnights.jpg", hasPlayButton: true),
-              _buildAlbumCard("Mr. Morale", "assets/mr_morale.jpg"),
+              _buildAlbumCard("After Hours", "assets/after_hours.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
+              _buildAlbumCard("Renaissance", "assets/renaissance.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
+              _buildAlbumCard("Midnights", "assets/midnights.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
+              _buildAlbumCard("Mr. Morale", "assets/mr_morale.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
             ],
           ),
         ),
