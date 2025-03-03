@@ -182,15 +182,11 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   Widget _buildExpandedPlayer(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double artworkSize = screenWidth * 0.7 < screenHeight * 0.35
-        ? screenWidth * 0.7
-        : screenHeight * 0.35;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
-      minChildSize: 0.5,
+      minChildSize: 0.8,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: const BoxDecoration(
@@ -204,18 +200,18 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             controller: scrollController,
             padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
             children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[600],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              // // Drag handle
+              // Center(
+              //   child: Container(
+              //     width: 40,
+              //     height: 5,
+              //     decoration: BoxDecoration(
+              //       color: Colors.grey[600],
+              //       borderRadius: BorderRadius.circular(2.5),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
               // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -258,19 +254,19 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               ),
               const SizedBox(height: 40),
               // Lyrics excerpt
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text(
-                  widget.lyricsExcerpt,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontStyle: FontStyle.italic,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              //   child: Text(
+              //     widget.lyricsExcerpt,
+              //     textAlign: TextAlign.center,
+              //     style: TextStyle(
+              //       color: Colors.white.withOpacity(0.7),
+              //       fontStyle: FontStyle.italic,
+              //       fontSize: 14,
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
               // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

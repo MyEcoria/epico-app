@@ -52,12 +52,13 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     super.dispose();
   }
 
-  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = ""}) async {
+  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = ""}) async {
     await widget.songManager.togglePlaySong(
       name: name,
       description: description,
       songUrl: songUrl,
       pictureUrl: pictureUrl,
+      artist: artist,
     );
     setState(() {});
   }
@@ -104,7 +105,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             child: AudioPlayerWidget(
               songManager: widget.songManager,
               currentSongTitle: songState['name'] ?? "Blinding Lights",
-              currentArtist: "The Weeknd",
+              currentArtist: songState['artist'] ?? "MyEcoria",
               albumArtUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
               duration: const Duration(minutes: 3, seconds: 45),
               onPlayPause: () => _playPause(
@@ -244,6 +245,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   track['name'] ?? 'Unknown Title',
                   track['picture'] ?? 'assets/caca.jpg',
                   track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                  artist: track['artist'] ?? 'MyEcoria',
                   hasPlayButton: true,
                 );
                 },
@@ -256,7 +258,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false}) {
+  Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false, String artist = ""}) {
     return Container(
       width: 120,
       margin: const EdgeInsets.only(right: 16),
@@ -285,6 +287,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     name: title,
                     description: "Song from your collection",
                     pictureUrl: imagePath,
+                    artist: artist,
                   );
                   },
                   child: Container(

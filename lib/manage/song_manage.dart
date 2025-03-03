@@ -9,6 +9,7 @@ class SongManager {
   String? _currentSongUrl;
   String? _currentPictureUrl;
   String? _currentDescription;
+  String? _currentArtist;
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -31,6 +32,7 @@ class SongManager {
     required String description,
     required String songUrl,
     required String pictureUrl,
+    required String artist,
   }) async {
     try {
       // If already playing the same song, stop it
@@ -45,6 +47,7 @@ class SongManager {
       _currentDescription = description;
       _currentSongUrl = songUrl;
       _currentPictureUrl = pictureUrl;
+      _currentArtist = artist;
       
       await _audioPlayer.stop(); // Stop any currently playing song
       await _audioPlayer.play(UrlSource(songUrl));
@@ -63,6 +66,7 @@ class SongManager {
       'description': _currentDescription,
       'songUrl': _currentSongUrl,
       'pictureUrl': _currentPictureUrl,
+      'artist': _currentArtist,
     };
   }
 
