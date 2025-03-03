@@ -373,9 +373,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   child: StreamBuilder<bool>(
                     stream: widget.songManager.isPlayingStream,
                     builder: (context, snapshot) {
-                      bool isPlaying = snapshot.data ?? false;
                       return Icon(
-                        isPlaying ? Icons.pause : Icons.play_arrow,
+                        widget.isPlaying ? Icons.pause : Icons.play_arrow,
                         color: Colors.black,
                         size: 38,
                       );
