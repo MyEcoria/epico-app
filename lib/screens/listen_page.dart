@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'widget.dart';
-import 'song_manage.dart';
+import '../manage/widget_manage.dart';
+import '../manage/song_manage.dart';
 
 void main() {
   runApp(const MyApp());

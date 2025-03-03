@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'song_manage.dart';
+import 'manage/song_manage.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -295,7 +295,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           Row(
             children: [
               Text(
-                _formatDuration(_position),
+                _formatDuration(widget.duration),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
               Expanded(
@@ -387,36 +387,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 onPressed: widget.onNext,
               ),
             ],
-          ),
-          SizedBox(height: screenHeight * 0.02),
-          Container(
-            padding: EdgeInsets.all(screenWidth * 0.04),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.queue_music, color: Colors.white70),
-                SizedBox(width: screenWidth * 0.04),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Next",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      Text(
-                        "${widget.nextSongTitle} · ${widget.nextSongArtist}",
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
           ),
         ],
       ),

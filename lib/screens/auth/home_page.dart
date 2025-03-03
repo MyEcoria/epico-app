@@ -4,7 +4,7 @@ import 'package:deezer_app/screens/auth/email_page.dart';
 import 'package:deezer_app/screens/auth/login_page.dart';
 import 'package:deezer_app/screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:deezer_app/screens/song_manage.dart';
+import 'package:deezer_app/manage/song_manage.dart';
 
 class HomePage extends StatefulWidget {
   @override
