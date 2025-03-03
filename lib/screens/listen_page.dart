@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../manage/widget_manage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
+import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
 void main() {
   runApp(const MyApp());
@@ -141,19 +143,36 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-          children: const [
-            Icon(
+            children: [
+            const Icon(
               Icons.waving_hand,
               color: Colors.amber,
               size: 20,
             ),
-            SizedBox(width: 4),
-            Text(
-              "Hi Pierric,",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
+            const SizedBox(width: 4),
+            FutureBuilder<String>(
+              future: FlutterSecureStorage().read(key: 'name').then((value) => value ?? ''),
+              builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text(
+                'Error: ${snapshot.error}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                );
+              } else {
+                return Text(
+                "Hi ${snapshot.data},",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                );
+              }
+              },
             ),
           ],
         ),
@@ -164,9 +183,14 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             shape: BoxShape.circle,
             color: Colors.grey[800],
             border: Border.all(color: Colors.white, width: 1),
-            image: const DecorationImage(
-              image: NetworkImage("https://randomuser.me/api/portraits/men/43.jpg"),
-              fit: BoxFit.cover,
+          ),
+          child: ClipOval(
+            child: FutureBuilder<String?>(
+              future: FlutterSecureStorage().read(key: 'name'),
+              builder: (context, snapshot) {
+                final username = snapshot.data ?? 'MyEcoria';
+                return ProfilePicture(name: username, radius: 31, fontsize: 21);
+              },
             ),
           ),
         ),
