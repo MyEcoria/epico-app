@@ -41,31 +41,15 @@ class AudioPlayerWidget extends StatefulWidget {
   _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
 }
 
-class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTickerProviderStateMixin {
-  bool _isExpanded = false;
+class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   Duration _position = Duration.zero;
   double _dragValue = 0.0;
   bool _isDragging = false;
-
-  // Variable pour suivre l'offset vertical dû au drag
-  double _dragOffset = 0.0;
-  late AnimationController _dragController;
-  late Animation<double> _dragAnimation;
 
   @override
   void initState() {
     super.initState();
     _setupPositionListener();
-    _dragController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-  }
-
-  @override
-  void dispose() {
-    _dragController.dispose();
-    super.dispose();
   }
 
   void _setupPositionListener() {
@@ -85,27 +69,32 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
     return "$minutes:$seconds";
   }
 
+  void _showExpandedPlayer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return _buildExpandedPlayer(context);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _isExpanded ? _buildExpandedPlayer(context) : _buildMiniPlayer(context);
+    return _buildMiniPlayer(context);
   }
 
   Widget _buildMiniPlayer(BuildContext context) {
     return GestureDetector(
+      onTap: () {
+        _showExpandedPlayer(context);
+      },
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity! < 0) {
-          // Swipe up - étendre le player
-          setState(() {
-            _isExpanded = true;
-            _dragOffset = 0.0; // réinitialisation lors de l'extension
-          });
+          // Swipe up - open expanded player
+          _showExpandedPlayer(context);
         }
-      },
-      onTap: () {
-        setState(() {
-          _isExpanded = true;
-          _dragOffset = 0.0;
-        });
       },
       child: Container(
         height: 60,
@@ -121,7 +110,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
         ),
         child: Row(
           children: [
-            // Pochette d'album
+            // Album artwork
             Container(
               width: 50,
               height: 50,
@@ -134,7 +123,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                 ),
               ),
             ),
-            // Infos de la chanson
+            // Song info
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -165,7 +154,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                 ),
               ),
             ),
-            // Bouton lecture/pause
+            // Play/pause button
             IconButton(
               icon: Icon(
                 widget.isPlaying ? Icons.pause : Icons.play_arrow,
@@ -181,68 +170,43 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
   }
 
   Widget _buildExpandedPlayer(BuildContext context) {
-  final double screenHeight = MediaQuery.of(context).size.height;
-  final double halfScreen = screenHeight / 2;
-
-  return GestureDetector(
-    onVerticalDragUpdate: (details) {
-      setState(() {
-        _isDragging = true;
-        _dragOffset += details.delta.dy;
-        if (_dragOffset < 0) _dragOffset = 0;
-      });
-    },
-    onVerticalDragEnd: (details) {
-      _isDragging = false;
-      if (_dragOffset > halfScreen) {
-        // Si le drag est supérieur à 50% de la hauteur, passer en mode mini
-        _animateDrag(_dragOffset, screenHeight, onCompleted: () {
-          setState(() {
-            _isExpanded = false;
-            _dragOffset = 0.0;
-          });
-          _dragController.reset();
-        });
-      } else {
-        // Sinon, revenir en mode étendu
-        _animateDrag(_dragOffset, 0.0, onCompleted: () {
-          setState(() {
-            _dragOffset = 0.0;
-          });
-          _dragController.reset();
-        });
-      }
-    },
-    child: Transform.translate(
-      offset: Offset(0, _dragOffset),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        child: Container(
-          width: double.infinity,
-          height: screenHeight,
-          color: Colors.black,
-          padding: const EdgeInsets.only(top: 100.0, left: 24.0, right: 24.0, bottom: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    final double screenHeight = MediaQuery.of(context).size.height;
+    
+    return DraggableScrollableSheet(
+      initialChildSize: 0.95,
+      minChildSize: 0.5,
+      builder: (BuildContext context, ScrollController scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
             children: [
-              // Barre supérieure avec la flèche et le bouton "Connect to a device"
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                    onPressed: () {
-                      _animateDrag(_dragOffset, screenHeight, onCompleted: () {
-                        setState(() {
-                          _isExpanded = false;
-                          _dragOffset = 0.0;
-                        });
-                        _dragController.reset();
-                      });
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   TextButton.icon(
                     icon: const Icon(Icons.devices, color: Colors.white, size: 16),
@@ -251,35 +215,33 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                     onPressed: () {
-                      // Implémenter la fonctionnalité de connexion
+                      // Implement connection functionality
                     },
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              // Artwork de l'album
-              Expanded(
-                flex: 5,
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                    image: DecorationImage(
-                      image: NetworkImage(widget.albumArtUrl),
-                      fit: BoxFit.cover,
+              const SizedBox(height: 40),
+              // Album artwork
+              Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.width * 0.8,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
+                  ],
+                  image: DecorationImage(
+                    image: NetworkImage(widget.albumArtUrl),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              // Extrait de paroles
+              const SizedBox(height: 40),
+              // Lyrics excerpt
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
@@ -293,7 +255,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                 ),
               ),
               const SizedBox(height: 20),
-              // Titre de la chanson et boutons d'action (favori, partage)
+              // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -339,7 +301,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                 ],
               ),
               const SizedBox(height: 16),
-              // Barre de progression
+              // Progress bar
               Row(
                 children: [
                   Text(
@@ -388,8 +350,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              // Contrôles de lecture
+              const SizedBox(height: 40),
+              // Playback controls
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -426,122 +388,41 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> with SingleTicker
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
+              // Next song info
+              // Container(
+              //   padding: const EdgeInsets.all(16),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.1),
+              //     borderRadius: BorderRadius.circular(8),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       const Icon(Icons.queue_music, color: Colors.white70),
+              //       const SizedBox(width: 16),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             const Text(
+              //               "Next",
+              //               style: TextStyle(color: Colors.white70, fontSize: 12),
+              //             ),
+              //             Text(
+              //               "${widget.nextSongTitle} · ${widget.nextSongArtist}",
+              //               style: const TextStyle(color: Colors.white, fontSize: 14),
+              //               overflow: TextOverflow.ellipsis,
+              //             ),
+              //           ],
+              //         ),
+              //       )
+              //     ],
+              //   ),
+              // ),
             ],
           ),
-        ),
-      ),
-    ),
-  );
-}
-
-
-  // Méthode pour animer le _dragOffset jusqu'à une valeur cible
-  void _animateDrag(double from, double to, {required VoidCallback onCompleted}) {
-    _dragAnimation = Tween<double>(begin: from, end: to).animate(
-      CurvedAnimation(parent: _dragController, curve: Curves.easeOut),
-    );
-    _dragController.addListener(() {
-      setState(() {
-        _dragOffset = _dragAnimation.value;
-      });
-    });
-    _dragController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        onCompleted();
-      }
-    });
-    _dragController.forward();
-  }
-}
-
-
-
-// Example usage
-class MusicPlayerScreen extends StatefulWidget {
-  const MusicPlayerScreen({Key? key}) : super(key: key);
-
-  @override
-  _MusicPlayerScreenState createState() => _MusicPlayerScreenState();
-}
-
-class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isPlaying = false;
-  Duration _duration = const Duration(minutes: 3, seconds: 45);
-  bool _isFavorite = false;
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  void _togglePlayPause() {
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-    // Handle actual play/pause logic here
-  }
-
-  void _skipToNext() {
-    // Handle next song logic
-  }
-
-  void _skipToPrevious() {
-    // Handle previous song logic
-  }
-
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-  }
-
-  void _shareTrack() {
-    // Handle sharing functionality
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Your main app content goes here
-          ListView(
-            padding: const EdgeInsets.only(bottom: 60), // Space for mini player
-            children: const [
-              // Your app content
-              SizedBox(height: 300), // Example placeholder content
-              Center(child: Text("Main App Content", style: TextStyle(fontSize: 24))),
-              SizedBox(height: 1000), // Example placeholder content
-            ],
-          ),
-
-          // The audio player widget positioned at the bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AudioPlayerWidget(
-              audioPlayer: _audioPlayer,
-              currentSongTitle: "Blinding Lights",
-              currentArtist: "The Weeknd",
-              albumArtUrl: "https://example.com/album_cover.jpg",
-              duration: _duration,
-              onPlayPause: _togglePlayPause,
-              onNext: _skipToNext,
-              onPrevious: _skipToPrevious,
-              isPlaying: _isPlaying,
-              lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
-              isFavorite: _isFavorite,
-              onToggleFavorite: _toggleFavorite,
-              onShare: _shareTrack,
-              nextSongTitle: "Save Your Tears",
-              nextSongArtist: "The Weeknd",
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
