@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MusicApiService {
-  static const String baseUrl = 'http://10.17.72.213:3000';
+  static const String baseUrl = 'http://192.168.1.53:3000';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
     Future<Map<String, dynamic>> getMe() async {
@@ -75,6 +75,20 @@ class MusicApiService {
       }
     } catch (e) {
       throw Exception('Error fetching new releases: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getRecommendedPlaylist() async {
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/recommended'));
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load for-you tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching for-you tracks: $e');
     }
   }
 }

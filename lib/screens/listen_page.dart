@@ -52,13 +52,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     super.dispose();
   }
 
-  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = ""}) async {
+  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", bool instant = true}) async {
+    debugPrint('Toggling play/pause for $name/$songUrl/$pictureUrl/$artist/$instant/$description');
     await widget.songManager.togglePlaySong(
       name: name,
       description: description,
       songUrl: songUrl,
       pictureUrl: pictureUrl,
       artist: artist,
+      instant: instant,
     );
     setState(() {});
   }
@@ -391,69 +393,80 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              final mixData = [
-                {
-                  "title": "Mix 1",
-                  "artists": "Calvin Harris, Martin Garrix, Dewain Whitmore",
-                  "image": "assets/mix1.jpg"
-                },
-                {
-                  "title": "Mix 2",
-                  "artists": "A R Rahman, Yuvan Shankar Raja, Jeyaraj",
-                  "image": "assets/mix2.jpg"
-                },
-                {
-                  "title": "Maroon 5",
-                  "artists": "Dragons, Coldplay",
-                  "image": "assets/maroon5.jpg"
-                },
-              ];
-              
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 130, // Reduced height to prevent overflow
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.grey[800],
-                        image: DecorationImage(
-                          image: AssetImage(mixData[index]["image"]!),
-                          fit: BoxFit.cover,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: MusicApiService().getForYouTracks(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No mixes available'));
+              } else {
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final mix = snapshot.data![index];
+                    final mixSongs = (mix['songs'] ?? []) as List<dynamic>;
+                    return GestureDetector(
+                      onTap: () {
+                        for (int i = 0; i < mixSongs.length; i++) {
+                          _playPause(
+                            mixSongs[i]["song"] as String,
+                            name: mixSongs[i]["name"] as String,
+                            description: "From ${mix["name"]}",
+                            pictureUrl: mixSongs[i]["picture"] as String,
+                            artist: mixSongs[i]["artist"] as String,
+                            instant: i == 0,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: 160,
+                        margin: const EdgeInsets.only(right: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 130,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[800],
+                                image: DecorationImage(
+                                  image: NetworkImage(mixSongs[0]["picture"] as String),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              mix["name"] as String,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              mix["artist"] as String,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      mixData[index]["title"]!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      mixData[index]["artists"]!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              );
+                    );
+                  },
+                );
+              }
             },
           ),
         ),
@@ -625,24 +638,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildRecommendedPlaylists() {
-    final playlists = [
-      {
-        "title": "Discover Weekly",
-        "description": "Your weekly mixtape of fresh music",
-        "image": "assets/discover.jpg"
-      },
-      {
-        "title": "Chill Vibes",
-        "description": "Relaxing beats for your downtime",
-        "image": "assets/chill.jpg"
-      },
-      {
-        "title": "Workout Hits",
-        "description": "Energy-boosting tracks for your gym session",
-        "image": "assets/workout.jpg"
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -657,52 +652,80 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: playlists.length,
-            itemBuilder: (context, index) {
-              final playlist = playlists[index];
-              return Container(
-                width: 180,
-                margin: const EdgeInsets.only(right: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 130, // Réduit pour éviter le débordement
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.grey[800],
-                        image: DecorationImage(
-                          image: AssetImage(playlist["image"]!),
-                          fit: BoxFit.cover,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: MusicApiService().getForYouTracks(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No mixes available'));
+              } else {
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final mix = snapshot.data![index];
+                    final mixSongs = (mix['songs'] ?? []) as List<dynamic>;
+                    return GestureDetector(
+                      onTap: () {
+                        for (int i = 0; i < mixSongs.length; i++) {
+                          _playPause(
+                            mixSongs[i]["song"] as String,
+                            name: mixSongs[i]["name"] as String,
+                            description: "From ${mix["name"]}",
+                            pictureUrl: mixSongs[i]["picture"] as String,
+                            artist: mixSongs[i]["artist"] as String,
+                            instant: i == 0,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: 160,
+                        margin: const EdgeInsets.only(right: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 130,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[800],
+                                image: DecorationImage(
+                                  image: NetworkImage(mixSongs[0]["picture"] as String),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              mix["name"] as String,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              mix["artist"] as String,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      playlist["title"]!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2), // Réduit de 4 à 2
-                    Text(
-                      playlist["description"]!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              );
+                    );
+                  },
+                );
+              }
             },
           ),
         ),
