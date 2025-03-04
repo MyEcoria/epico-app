@@ -3,7 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  static bool PLAYING = false;
+  static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
   String? _currentSongUrl;
@@ -11,8 +11,8 @@ class SongManager {
   String? _currentDescription;
   String? _currentArtist;
 
-  List<Map<String, dynamic>> _queue = [];
-  List<Map<String, dynamic>> _history = [];
+  final List<Map<String, dynamic>> _queue = [];
+  final List<Map<String, dynamic>> _history = [];
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -26,7 +26,12 @@ class SongManager {
     return _currentSongUrl == songUrl;
   }
 
+  bool isPaused() {
+    return _audioPlayer.state == PlayerState.paused;
+  }
+
   Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
+  Stream<bool> get isPausedStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.paused);
   Stream<Duration> get positionStream => _audioPlayer.onPositionChanged;
 
   void addToQueue({
@@ -152,10 +157,16 @@ class SongManager {
     bool instant = true,
   }) async {
     try {
-      if (_isPlaying && _currentSongUrl == songUrl) {
-        await _audioPlayer.stop();
-        _isPlaying = false;
-        return;
+      if (_currentSongUrl == songUrl) {
+        if (_isPlaying) {
+          await _audioPlayer.pause();
+          _isPlaying = false;
+          return;
+        } else {
+          await _audioPlayer.resume();
+          _isPlaying = true;
+          return;
+        }
       }
 
       if (instant) {

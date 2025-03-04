@@ -97,85 +97,92 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
       stream: widget.songManager.isPlayingStream,
       builder: (context, snapshot) {
         bool isPlaying = snapshot.data ?? false;
-        if (!isPlaying) {
-          return SizedBox.shrink();
-        }
-        return GestureDetector(
-          onTap: () {
-            _showExpandedPlayer(context);
-          },
-          onVerticalDragEnd: (details) {
-            if (details.primaryVelocity! < 0) {
-              _showExpandedPlayer(context);
+        return StreamBuilder<bool>(
+          stream: widget.songManager.isPausedStream,
+          builder: (context, pausedSnapshot) {
+            bool isPaused = pausedSnapshot.data ?? false;
+            if (!isPlaying && !isPaused) {
+              return SizedBox.shrink();
+            } else {
+              return GestureDetector(
+                onTap: () {
+                  _showExpandedPlayer(context);
+                },
+                onVerticalDragEnd: (details) {
+                  if (details.primaryVelocity! < 0) {
+                    _showExpandedPlayer(context);
+                  }
+                },
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        margin: const EdgeInsets.only(left: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          image: DecorationImage(
+                            image: NetworkImage(widget.albumArtUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.currentSongTitle,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                widget.currentArtist,
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha((0.7 * 255).toInt()),
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed: _handlePlayPause,
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
           },
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  margin: const EdgeInsets.only(left: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    image: DecorationImage(
-                      image: NetworkImage(widget.albumArtUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.currentSongTitle,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          widget.currentArtist,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: _handlePlayPause,
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
@@ -185,7 +192,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.95,
+      initialChildSize: 0.97,
       minChildSize: 0.9,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
@@ -316,10 +323,16 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               // Progress bar
               Row(
                 children: [
-                  Text(
-                    _formatDuration(_position),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
+                    StreamBuilder<Duration>(
+                    stream: widget.songManager.positionStream,
+                    builder: (context, snapshot) {
+                      _position = snapshot.data ?? Duration.zero;
+                      return Text(
+                      _formatDuration(_position),
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      );
+                    },
+                    ),
                   Expanded(
                     child: StreamBuilder<Duration>(
                       stream: widget.songManager.positionStream,
