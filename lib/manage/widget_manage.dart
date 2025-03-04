@@ -1,40 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'song_manage.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
-  final AudioPlayer audioPlayer;
+  final SongManager songManager;
   final String currentSongTitle;
   final String currentArtist;
   final String albumArtUrl;
   final Duration duration;
   final VoidCallback onPlayPause;
-  final VoidCallback onNext;
-  final VoidCallback onPrevious;
-  final bool isPlaying;
   final String lyricsExcerpt;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
   final VoidCallback onShare;
+  final bool isPlaying;
   final String nextSongTitle;
   final String nextSongArtist;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
 
   const AudioPlayerWidget({
     Key? key,
-    required this.audioPlayer,
+    required this.songManager,
     required this.currentSongTitle,
     required this.currentArtist,
     required this.albumArtUrl,
     required this.duration,
     required this.onPlayPause,
-    required this.onNext,
-    required this.onPrevious,
-    required this.isPlaying,
     required this.lyricsExcerpt,
     required this.isFavorite,
     required this.onToggleFavorite,
     required this.onShare,
+    required this.isPlaying,
     required this.nextSongTitle,
     required this.nextSongArtist,
+    required this.onNext,
+    required this.onPrevious,
   }) : super(key: key);
 
   @override
@@ -45,21 +46,27 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   Duration _position = Duration.zero;
   double _dragValue = 0.0;
   bool _isDragging = false;
+  late AudioPlayer _audioPlayer;
 
   @override
   void initState() {
     super.initState();
+    _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
   }
 
   void _setupPositionListener() {
-    widget.audioPlayer.onPositionChanged.listen((position) {
+    _audioPlayer.onPositionChanged.listen((position) {
       if (!_isDragging && mounted) {
         setState(() {
           _position = position;
         });
       }
     });
+  }
+
+  void _handlePlayPause() {
+    widget.onPlayPause();
   }
 
   String _formatDuration(Duration duration) {
@@ -86,95 +93,100 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   Widget _buildMiniPlayer(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _showExpandedPlayer(context);
-      },
-      onVerticalDragEnd: (details) {
-        if (details.primaryVelocity! < 0) {
-          // Swipe up - open expanded player
-          _showExpandedPlayer(context);
+    return StreamBuilder<bool>(
+      stream: widget.songManager.isPlayingStream,
+      builder: (context, snapshot) {
+        bool isPlaying = snapshot.data ?? false;
+        if (!isPlaying) {
+          return SizedBox.shrink();
         }
+        return GestureDetector(
+          onTap: () {
+            _showExpandedPlayer(context);
+          },
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity! < 0) {
+              _showExpandedPlayer(context);
+            }
+          },
+          child: Container(
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  margin: const EdgeInsets.only(left: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    image: DecorationImage(
+                      image: NetworkImage(widget.albumArtUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.currentSongTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          widget.currentArtist,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: _handlePlayPause,
+                ),
+              ],
+            ),
+          ),
+        );
       },
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.black87,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Album artwork
-            Container(
-              width: 50,
-              height: 50,
-              margin: const EdgeInsets.only(left: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                image: DecorationImage(
-                  image: NetworkImage(widget.albumArtUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            // Song info
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.currentSongTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      widget.currentArtist,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Play/pause button
-            IconButton(
-              icon: Icon(
-                widget.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
-                size: 28,
-              ),
-              onPressed: widget.onPlayPause,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildExpandedPlayer(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
-    
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
-      minChildSize: 0.5,
+      minChildSize: 0.9,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: const BoxDecoration(
@@ -188,18 +200,18 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             controller: scrollController,
             padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
             children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[600],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              // // Drag handle
+              // Center(
+              //   child: Container(
+              //     width: 40,
+              //     height: 5,
+              //     decoration: BoxDecoration(
+              //       color: Colors.grey[600],
+              //       borderRadius: BorderRadius.circular(2.5),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
               // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -242,19 +254,19 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               ),
               const SizedBox(height: 40),
               // Lyrics excerpt
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text(
-                  widget.lyricsExcerpt,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontStyle: FontStyle.italic,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              //   child: Text(
+              //     widget.lyricsExcerpt,
+              //     textAlign: TextAlign.center,
+              //     style: TextStyle(
+              //       color: Colors.white.withOpacity(0.7),
+              //       fontStyle: FontStyle.italic,
+              //       fontSize: 14,
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
               // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -309,39 +321,45 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   Expanded(
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        trackHeight: 2,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                        activeTrackColor: Colors.white,
-                        inactiveTrackColor: Colors.grey[800],
-                        thumbColor: Colors.white,
-                        overlayColor: Colors.white.withOpacity(0.2),
-                      ),
-                      child: Slider(
-                        value: _isDragging
-                            ? _dragValue
-                            : (widget.duration.inMilliseconds > 0
-                                ? _position.inMilliseconds / widget.duration.inMilliseconds
-                                : 0.0),
-                        onChanged: (value) {
-                          setState(() {
-                            _isDragging = true;
-                            _dragValue = value;
-                          });
-                        },
-                        onChangeEnd: (value) {
-                          setState(() {
-                            _isDragging = false;
-                            final newPosition = Duration(
-                              milliseconds: (value * widget.duration.inMilliseconds).round(),
-                            );
-                            widget.audioPlayer.seek(newPosition);
-                            _position = newPosition;
-                          });
-                        },
-                      ),
+                    child: StreamBuilder<Duration>(
+                      stream: widget.songManager.positionStream,
+                      builder: (context, snapshot) {
+                        _position = snapshot.data ?? Duration.zero;
+                        return SliderTheme(
+                          data: SliderThemeData(
+                            trackHeight: 2,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                            activeTrackColor: Colors.white,
+                            inactiveTrackColor: Colors.grey[800],
+                            thumbColor: Colors.white,
+                            overlayColor: Colors.white.withOpacity(0.2),
+                          ),
+                          child: Slider(
+                            value: _isDragging
+                                ? _dragValue
+                                : (widget.duration.inMilliseconds > 0
+                                    ? _position.inMilliseconds / widget.duration.inMilliseconds
+                                    : 0.0),
+                            onChanged: (value) {
+                              setState(() {
+                                _isDragging = true;
+                                _dragValue = value;
+                              });
+                            },
+                            onChangeEnd: (value) {
+                              setState(() {
+                                _isDragging = false;
+                                final newPosition = Duration(
+                                  milliseconds: (value * widget.duration.inMilliseconds).round(),
+                                );
+                                _audioPlayer.seek(newPosition);
+                                _position = newPosition;
+                              });
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                   Text(
@@ -359,27 +377,32 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                     icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
                     onPressed: widget.onPrevious,
                   ),
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        widget.isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Colors.black,
-                        size: 38,
+                  GestureDetector(
+                    onTap: _handlePlayPause,
+                    child: Container(
+                      width: screenWidth * 0.15 > 60 ? screenWidth * 0.15 : 60,
+                      height: screenWidth * 0.15 > 60 ? screenWidth * 0.15 : 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
-                      onPressed: widget.onPlayPause,
+                      child: StreamBuilder<bool>(
+                        stream: widget.songManager.isPlayingStream,
+                        builder: (context, snapshot) {
+                          return Icon(
+                            widget.isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.black,
+                            size: 38,
+                          );
+                        },
+                      ),
                     ),
                   ),
                   IconButton(

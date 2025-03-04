@@ -4,6 +4,7 @@ import 'package:deezer_app/screens/auth/email_page.dart';
 import 'package:deezer_app/screens/auth/login_page.dart';
 import 'package:deezer_app/screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:deezer_app/manage/song_manage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final SongManager songManager = SongManager();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
@@ -29,7 +31,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (authToken != null) {
       // If auth token exists, navigate to listen page
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => MusicAppHomePage()),
+        MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
       );
     }
   }
@@ -98,32 +100,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 child: Text('Sign up'),
               ),
               SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // Logique pour continuer avec Microsoft
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    side: BorderSide(color: Colors.white),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/microsoft_logo.png', // Assurez-vous d'avoir le logo Microsoft dans vos assets
-                      width: 24,
-                      height: 24,
-                    ),
-                    SizedBox(width: 8),
-                    Text('Continue with Microsoft'),
-                  ],
-                ),
-              ),
+              // ElevatedButton(
+              //   onPressed: () {
+              //     // Logique pour continuer avec Microsoft
+              //   },
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.black,
+              //     foregroundColor: Colors.white,
+              //     minimumSize: Size(double.infinity, 50),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(25),
+              //       side: BorderSide(color: Colors.white),
+              //     ),
+              //   ),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Image.asset(
+              //         'assets/microsoft_logo.png', // Assurez-vous d'avoir le logo Microsoft dans vos assets
+              //         width: 24,
+              //         height: 24,
+              //       ),
+              //       SizedBox(width: 8),
+              //       Text('Continue with Microsoft'),
+              //     ],
+              //   ),
+              // ),
               SizedBox(height: 15),
               TextButton(
                 onPressed: () {
