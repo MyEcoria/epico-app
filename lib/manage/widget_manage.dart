@@ -186,7 +186,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
 
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
-      minChildSize: 0.8,
+      minChildSize: 0.9,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: const BoxDecoration(

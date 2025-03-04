@@ -462,30 +462,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildArtistsYouFollow() {
-    final artistReleases = [
-      {
-        "artist": "The Weeknd",
-        "title": "Blinding Lights",
-        "releaseType": "Single",
-        "image": "assets/weeknd.jpg",
-        "time": "3 days ago"
-      },
-      {
-        "artist": "Dua Lipa",
-        "title": "Future Nostalgia",
-        "releaseType": "Album",
-        "image": "assets/dualipa.jpg",
-        "time": "1 week ago"
-      },
-      {
-        "artist": "Kendrick Lamar",
-        "title": "N95",
-        "releaseType": "Single",
-        "image": "assets/kendrick.jpg",
-        "time": "2 weeks ago"
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -510,66 +486,79 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           ],
         ),
         const SizedBox(height: 16),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: artistReleases.length,
-          itemBuilder: (context, index) {
-            final release = artistReleases[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: AssetImage(release["image"]!),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        FutureBuilder<List<Map<String, dynamic>>>(
+          future: MusicApiService().getFollowTracks(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No tracks available'));
+            } else {
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final release = snapshot.data![index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Row(
                       children: [
-                        Text(
-                          release["artist"]!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            image: DecorationImage(
+                              image: NetworkImage(release["picture"] ?? 'https://example.com/default_image.jpg'),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "${release["releaseType"]}: ${release["title"]}",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                release["artist"] ?? 'Unknown Artist',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                release["name"] ?? 'Unknown Title',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                release["date"] ?? 'Unknown Time',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white54,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          release["time"]!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white54,
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.more_vert, color: Colors.white),
+                          onPressed: () {},
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            );
+                  );
+                },
+              );
+            }
           },
         ),
       ],
@@ -603,16 +592,34 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildAlbumCard("After Hours", "assets/after_hours.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
-              _buildAlbumCard("Renaissance", "assets/renaissance.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
-              _buildAlbumCard("Midnights", "assets/midnights.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
-              _buildAlbumCard("Mr. Morale", "assets/mr_morale.jpg", "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3", hasPlayButton: true),
-            ],
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: MusicApiService().getNewReleases(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No tracks available'));
+              } else {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                final track = snapshot.data![index];
+                return _buildAlbumCard(
+                  track['name'] ?? 'Unknown Title',
+                  track['picture'] ?? 'assets/caca.jpg',
+                  track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                  artist: track['artist'] ?? 'MyEcoria',
+                  hasPlayButton: true,
+                );
+                },
+              );
+              }
+            },
+            ),
           ),
-        ),
       ],
     );
   }
