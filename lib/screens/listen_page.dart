@@ -1,3 +1,14 @@
+/*
+** EPITECH PROJECT, 2025
+** music_app_home_page.dart
+** File description:
+** Home page for the Deezer app.
+** This file contains the main UI and logic for the home screen of the app.
+** It displays various sections like recently played songs, mixes for you,
+** artists you follow, new releases, and recommended playlists.
+** It also handles the playback of songs using the SongManager.
+*/
+
 import 'package:flutter/material.dart';
 import '../manage/widget_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -119,10 +130,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
               isFavorite: false,
               onToggleFavorite: () {
-                // Implémentez le basculement du favori
+                // Implement favorite toggle functionality
               },
               onShare: () {
-                // Implémentez la fonctionnalité de partage
+                // Implement share functionality
               },
               isPlaying: isPlaying,
               nextSongTitle: "Save Your Tears",
@@ -146,7 +157,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-            children: [
+          children: [
             const Icon(
               Icons.waving_hand,
               color: Colors.amber,
@@ -156,25 +167,25 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             FutureBuilder<String>(
               future: FlutterSecureStorage().read(key: 'name').then((value) => value ?? ''),
               builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text(
-                'Error: ${snapshot.error}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-                );
-              } else {
-                return Text(
-                "Hi ${snapshot.data},",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-                );
-              }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text(
+                    'Error: ${snapshot.error}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  );
+                } else {
+                  return Text(
+                    "Hi ${snapshot.data},",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  );
+                }
               },
             ),
           ],
@@ -228,34 +239,34 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-            child: FutureBuilder<List<Map<String, dynamic>>>(
+          child: FutureBuilder<List<Map<String, dynamic>>>(
             future: MusicApiService().getLatestTracks(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+                return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No tracks available'));
+                return const Center(child: Text('No tracks available'));
               } else {
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                final track = snapshot.data![index];
-                return _buildAlbumCard(
-                  track['name'] ?? 'Unknown Title',
-                  track['picture'] ?? 'assets/caca.jpg',
-                  track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-                  artist: track['artist'] ?? 'MyEcoria',
-                  hasPlayButton: true,
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final track = snapshot.data![index];
+                    return _buildAlbumCard(
+                      track['name'] ?? 'Unknown Title',
+                      track['picture'] ?? 'assets/caca.jpg',
+                      track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                      artist: track['artist'] ?? 'MyEcoria',
+                      hasPlayButton: true,
+                    );
+                  },
                 );
-                },
-              );
               }
             },
-            ),
           ),
+        ),
       ],
     );
   }
@@ -281,28 +292,28 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   ),
                 ),
               ),
-                if (hasPlayButton)
+              if (hasPlayButton)
                 GestureDetector(
                   onTap: () {
-                  _playPause(
-                    url,
-                    name: title,
-                    description: "Song from your collection",
-                    pictureUrl: imagePath,
-                    artist: artist,
-                  );
+                    _playPause(
+                      url,
+                      name: title,
+                      description: "Song from your collection",
+                      pictureUrl: imagePath,
+                      artist: artist,
+                    );
                   },
                   child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black54,
-                  ),
-                  child: Icon(
-                    widget.songManager.isPlaying() && widget.songManager.isPlayingSong(url) ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black54,
+                    ),
+                    child: Icon(
+                      widget.songManager.isPlaying() && widget.songManager.isPlayingSong(url) ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
             ],
@@ -605,34 +616,34 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-            child: FutureBuilder<List<Map<String, dynamic>>>(
+          child: FutureBuilder<List<Map<String, dynamic>>>(
             future: MusicApiService().getNewReleases(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+                return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No tracks available'));
+                return const Center(child: Text('No tracks available'));
               } else {
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                final track = snapshot.data![index];
-                return _buildAlbumCard(
-                  track['name'] ?? 'Unknown Title',
-                  track['picture'] ?? 'assets/caca.jpg',
-                  track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-                  artist: track['artist'] ?? 'MyEcoria',
-                  hasPlayButton: true,
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final track = snapshot.data![index];
+                    return _buildAlbumCard(
+                      track['name'] ?? 'Unknown Title',
+                      track['picture'] ?? 'assets/caca.jpg',
+                      track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                      artist: track['artist'] ?? 'MyEcoria',
+                      hasPlayButton: true,
+                    );
+                  },
                 );
-                },
-              );
               }
             },
-            ),
           ),
+        ),
       ],
     );
   }

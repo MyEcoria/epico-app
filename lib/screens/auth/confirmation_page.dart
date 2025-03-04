@@ -1,3 +1,12 @@
+/*
+** EPITECH PROJECT, 2025
+** confirmation_page.dart
+** File description:
+** Confirmation page for the Deezer app.
+** This file contains the UI for the confirmation screen.
+** It displays a success message and a button to navigate to the login page.
+*/
+
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 

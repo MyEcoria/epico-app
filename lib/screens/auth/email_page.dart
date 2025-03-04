@@ -1,3 +1,12 @@
+/*
+** EPITECH PROJECT, 2025
+** email_screen.dart
+** File description:
+** Email screen for the Deezer app.
+** This file contains the UI and logic for the email input screen.
+** It validates the email format and navigates to the password screen upon valid input.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'password_page.dart';
@@ -29,7 +38,6 @@ class LowerCaseTextFormatter extends TextInputFormatter {
   }
 }
 
-
 class EmailScreen extends StatefulWidget {
   const EmailScreen({Key? key}) : super(key: key);
 
@@ -60,7 +68,7 @@ class _EmailScreenState extends State<EmailScreen> {
     _emailController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,7 +103,7 @@ class _EmailScreenState extends State<EmailScreen> {
             TextField(
               controller: _emailController,
               style: const TextStyle(color: Colors.white),
-              textCapitalization: TextCapitalization.none, // Ajoutez cette ligne
+              textCapitalization: TextCapitalization.none,
               inputFormatters: [
                 LowerCaseTextFormatter(),
               ],
@@ -116,15 +124,16 @@ class _EmailScreenState extends State<EmailScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  { _isValidEmail 
-                   ? Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PasswordScreen(),
-                    ),
-                  ) : null; }
-                },
+                onPressed: _isValidEmail
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PasswordScreen(),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isValidEmail ? Colors.blue : Colors.blue.withOpacity(0.5),
                   shape: RoundedRectangleBorder(

@@ -1,3 +1,11 @@
+/*
+** EPITECH PROJECT, 2025
+** song_manager.dart
+** File description:
+** Manages the playback of songs, including queue and history management.
+** This file contains methods to play, pause, add to queue, and manage the playback state.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -136,7 +144,7 @@ class SongManager {
     }
 
     final lastSong = _history.last;
-    
+
     _history.removeLast();
 
     await togglePlaySong(

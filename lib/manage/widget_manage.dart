@@ -1,3 +1,12 @@
+/*
+** EPITECH PROJECT, 2025
+** audio_player_widget.dart
+** File description:
+** Widget for audio player UI, including mini and expanded player views.
+** This file contains the UI and logic for the audio player, including playback controls,
+** progress bar, and song information.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'song_manage.dart';
@@ -207,19 +216,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             controller: scrollController,
             padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
             children: [
-              // // Drag handle
-              // Center(
-              //   child: Container(
-              //     width: 40,
-              //     height: 5,
-              //     decoration: BoxDecoration(
-              //       color: Colors.grey[600],
-              //       borderRadius: BorderRadius.circular(2.5),
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 20),
-              // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -240,7 +236,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Album artwork
               Container(
                 width: MediaQuery.of(context).size.width * 0.8,
                 height: MediaQuery.of(context).size.width * 0.8,
@@ -260,21 +255,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Lyrics excerpt
-              // Container(
-              //   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              //   child: Text(
-              //     widget.lyricsExcerpt,
-              //     textAlign: TextAlign.center,
-              //     style: TextStyle(
-              //       color: Colors.white.withOpacity(0.7),
-              //       fontStyle: FontStyle.italic,
-              //       fontSize: 14,
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 20),
-              // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -320,19 +300,18 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Progress bar
               Row(
                 children: [
-                    StreamBuilder<Duration>(
+                  StreamBuilder<Duration>(
                     stream: widget.songManager.positionStream,
                     builder: (context, snapshot) {
                       _position = snapshot.data ?? Duration.zero;
                       return Text(
-                      _formatDuration(_position),
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        _formatDuration(_position),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       );
                     },
-                    ),
+                  ),
                   Expanded(
                     child: StreamBuilder<Duration>(
                       stream: widget.songManager.positionStream,
@@ -382,7 +361,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Playback controls
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -425,36 +403,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 20),
-              // Next song info
-              // Container(
-              //   padding: const EdgeInsets.all(16),
-              //   decoration: BoxDecoration(
-              //     color: Colors.white.withOpacity(0.1),
-              //     borderRadius: BorderRadius.circular(8),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       const Icon(Icons.queue_music, color: Colors.white70),
-              //       const SizedBox(width: 16),
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             const Text(
-              //               "Next",
-              //               style: TextStyle(color: Colors.white70, fontSize: 12),
-              //             ),
-              //             Text(
-              //               "${widget.nextSongTitle} · ${widget.nextSongArtist}",
-              //               style: const TextStyle(color: Colors.white, fontSize: 14),
-              //               overflow: TextOverflow.ellipsis,
-              //             ),
-              //           ],
-              //         ),
-              //       )
-              //     ],
-              //   ),
-              // ),
             ],
           ),
         );

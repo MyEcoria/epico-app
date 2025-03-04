@@ -1,3 +1,13 @@
+/*
+** EPITECH PROJECT, 2025
+** password_screen.dart
+** File description:
+** Password screen for the Deezer app.
+** This file contains the UI and logic for the password creation screen.
+** It validates the password based on certain criteria and provides feedback
+** to the user on the password strength.
+*/
+
 import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
 
@@ -49,7 +59,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
       _hasMinLength = password.length >= 8;
       _hasDigit = RegExp(r'[0-9]').hasMatch(password);
       _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
-      
+
       if (password.isEmpty) {
         _passwordStrength = "";
       } else if (_hasMinLength && _hasDigit && _hasSpecialChar) {
@@ -158,10 +168,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       ? Text(
                           _passwordStrength,
                           style: TextStyle(
-                            color: _passwordStrength == "Strong" 
-                                ? Colors.green 
-                                : _passwordStrength == "Medium" 
-                                    ? Colors.orange 
+                            color: _passwordStrength == "Strong"
+                                ? Colors.green
+                                : _passwordStrength == "Medium"
+                                    ? Colors.orange
                                     : Colors.red,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -176,14 +186,16 @@ class _PasswordScreenState extends State<PasswordScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isPasswordValid ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ConfirmationPage(),
-                    ),
-                  );
-                } : null,
+                onPressed: _isPasswordValid
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConfirmationPage(),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),
@@ -212,11 +224,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isValid ? Colors.green : Colors.transparent,
-            border: isValid 
-                ? null 
+            border: isValid
+                ? null
                 : Border.all(color: Colors.grey, width: 1),
           ),
-          child: isValid 
+          child: isValid
               ? Icon(Icons.check, size: 14, color: Colors.white)
               : null,
         ),

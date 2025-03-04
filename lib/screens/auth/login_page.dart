@@ -1,3 +1,13 @@
+/*
+** EPITECH PROJECT, 2025
+** login_page.dart
+** File description:
+** Login page for the Deezer app.
+** This file contains the UI and logic for the login screen.
+** It validates the email and password, stores the authentication cookie,
+** and navigates to the home page upon successful login.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -57,16 +67,16 @@ class _LoginPageState extends State<LoginPage> {
     _loadCookie();
   }
 
-  _loadCookie() async {
+  Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
     setState(() {
       _cookieValue = value;
     });
   }
 
-  _storeCookie() async {
+  Future<void> _storeCookie() async {
     await _secureStorage.write(key: 'auth', value: 'example_cookie_value');
-    _loadCookie(); // Met à jour l'interface utilisateur
+    _loadCookie(); // Update the UI
   }
 
   @override
@@ -77,7 +87,6 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     super.dispose();
   }
-  
 
   void _validateEmail() {
     final email = _emailController.text;
@@ -93,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
       _hasMinLength = password.length >= 8;
       _hasDigit = RegExp(r'[0-9]').hasMatch(password);
       _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
-      
+
       if (password.isEmpty) {
         _passwordStrength = "";
       } else if (_hasMinLength && _hasDigit && _hasSpecialChar) {
@@ -222,10 +231,10 @@ class _LoginPageState extends State<LoginPage> {
                       ? Text(
                           _passwordStrength,
                           style: TextStyle(
-                            color: _passwordStrength == "Strong" 
-                                ? Colors.green 
-                                : _passwordStrength == "Medium" 
-                                    ? Colors.orange 
+                            color: _passwordStrength == "Strong"
+                                ? Colors.green
+                                : _passwordStrength == "Medium"
+                                    ? Colors.orange
                                     : Colors.red,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -240,15 +249,17 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isFormValid ? () {
-                  _storeCookie();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ),
-                  );
-                } : null,
+                onPressed: _isFormValid
+                    ? () {
+                        _storeCookie();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HomePage(),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),
@@ -277,11 +288,11 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isValid ? Colors.green : Colors.transparent,
-            border: isValid 
-                ? null 
+            border: isValid
+                ? null
                 : Border.all(color: Colors.grey, width: 1),
           ),
-          child: isValid 
+          child: isValid
               ? Icon(Icons.check, size: 14, color: Colors.white)
               : null,
         ),
