@@ -20,7 +20,7 @@ class SongManager {
   String? _currentArtist;
 
   final List<Map<String, dynamic>> _queue = [];
-  final List<Map<String, dynamic>> _history = [];
+  static int _queueIndex = 0;
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -59,100 +59,62 @@ class SongManager {
     debugPrint('Added song to queue: $name');
   }
 
-  void addToHistory({
-    required String name,
-    required String description,
-    required String songUrl,
-    required String pictureUrl,
-    required String artist,
-  }) {
-    _history.add({
-      'name': name,
-      'description': description,
-      'songUrl': songUrl,
-      'pictureUrl': pictureUrl,
-      'artist': artist,
-    });
-    debugPrint('Added song to history: $name');
-  }
-
   List<Map<String, dynamic>> getQueue() {
     return _queue;
-  }
-
-  List<Map<String, dynamic>> getHistory() {
-    return _history;
   }
 
   void clearQueue() {
     _queue.clear();
   }
 
-  void clearHistory() {
-    _history.clear();
-  }
-
   Future<void> playNextInQueue() async {
-    if (_currentSongName != null && _currentSongUrl != null) {
-      addToHistory(
-        name: _currentSongName!,
-        description: _currentDescription ?? '',
-        songUrl: _currentSongUrl!,
-        pictureUrl: _currentPictureUrl ?? '',
-        artist: _currentArtist ?? '',
-      );
-    }
-
-    debugPrint('Queue contents:');
-    for (int i = 0; i < _queue.length; i++) {
-      debugPrint('${i + 1}. ${_queue[i]['name']} by ${_queue[i]['artist']}');
-    }
-
-    if (_queue.isEmpty) {
-      debugPrint('Queue is empty, no next song to play');
+    if (_queue.length < _queueIndex) {
       return;
     }
-
-    final nextSong = _queue.first;
-
-    _queue.removeAt(0);
-
+    _queueIndex++;
     await togglePlaySong(
-      name: nextSong['name'],
-      description: nextSong['description'],
-      songUrl: nextSong['songUrl'],
-      pictureUrl: nextSong['pictureUrl'],
-      artist: nextSong['artist'],
+      name: _queue[_queueIndex]['name'],
+      description: _queue[_queueIndex]['description'],
+      songUrl: _queue[_queueIndex]['songUrl'],
+      pictureUrl: _queue[_queueIndex]['pictureUrl'],
+      artist: _queue[_queueIndex]['artist'],
       instant: true,
     );
   }
 
-  Future<void> playLastFromHistory() async {
-    if (_currentSongName != null && _currentSongUrl != null) {
-      addToQueue(
-        name: _currentSongName!,
-        description: _currentDescription ?? '',
-        songUrl: _currentSongUrl!,
-        pictureUrl: _currentPictureUrl ?? '',
-        artist: _currentArtist ?? '',
-      );
-    }
-
-    if (_history.isEmpty) {
-      debugPrint('History is empty, no song to play');
+  Future<void> playLastFromQueue() async {
+    if (_queueIndex == 0) {
       return;
     }
-
-    final lastSong = _history.last;
-
-    _history.removeLast();
-
+    _queueIndex--;
     await togglePlaySong(
-      name: lastSong['name'],
-      description: lastSong['description'],
-      songUrl: lastSong['songUrl'],
-      pictureUrl: lastSong['pictureUrl'],
-      artist: lastSong['artist'],
+      name: _queue[_queueIndex]['name'],
+      description: _queue[_queueIndex]['description'],
+      songUrl: _queue[_queueIndex]['songUrl'],
+      pictureUrl: _queue[_queueIndex]['pictureUrl'],
+      artist: _queue[_queueIndex]['artist'],
+      instant: true,
+    );
+  }
+
+  Future<void> lunchPlaylist(List<Map<String, dynamic>> playlist) async {
+    clearQueue();
+    for (var element in playlist) {
+      addToQueue(
+        name: element['name'],
+        description: element['description'],
+        songUrl: element['songUrl'],
+        pictureUrl: element['pictureUrl'],
+        artist: element['artist'],
+      );
+    }
+    await togglePlaySong(
+      name: _queue[_queueIndex]['name'],
+      description: _queue[_queueIndex]['description'],
+      songUrl: _queue[_queueIndex]['songUrl'],
+      pictureUrl: _queue[_queueIndex]['pictureUrl'],
+      artist: _queue[_queueIndex]['artist'],
+      instant: true,
     );
   }
 

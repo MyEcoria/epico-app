@@ -366,7 +366,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
-                    onPressed: widget.songManager.playLastFromHistory,
+                    onPressed: widget.songManager.playLastFromQueue,
                   ),
                   GestureDetector(
                     onTap: _handlePlayPause,
