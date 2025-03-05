@@ -75,7 +75,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   void _handlePlayPause() {
-    widget.onPlayPause();
+    final songState = widget.songManager.getSongState();
+    widget.songManager.togglePlaySong(name: songState['name'], description: songState['description'], songUrl: songState['songUrl'], pictureUrl: songState['pictureUrl'], artist: songState['artist']);
   }
 
   String _formatDuration(Duration duration) {
@@ -143,7 +144,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
                           image: DecorationImage(
-                            image: NetworkImage(widget.albumArtUrl),
+                            image: NetworkImage(widget.songManager.getSongState()['pictureUrl']),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -156,7 +157,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.currentSongTitle,
+                                widget.songManager.getSongState()['name'],
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -166,7 +167,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                widget.currentArtist,
+                                widget.songManager.getSongState()['artist'],
                                 style: TextStyle(
                                   color: Colors.white.withAlpha((0.7 * 255).toInt()),
                                   fontSize: 12,
@@ -236,56 +237,68 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-              Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: MediaQuery.of(context).size.width * 0.8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
+                StreamBuilder<Map<String, String>>(
+                stream: widget.songManager.songStateStream.cast<Map<String, String>>(),
+                builder: (context, snapshot) {
+                  final songState = snapshot.data ?? widget.songManager.getSongState();
+                  return Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.width * 0.8,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
-                  ],
-                  image: DecorationImage(
-                    image: NetworkImage(widget.albumArtUrl),
+                    ],
+                    image: DecorationImage(
+                    image: NetworkImage(songState['pictureUrl'] ?? ''),
                     fit: BoxFit.cover,
+                    ),
                   ),
+                  );
+                },
                 ),
-              ),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 7,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    StreamBuilder<Map<String, String>>(
+                    stream: widget.songManager.songStateStream.cast<Map<String, String>>(),
+                    builder: (context, snapshot) {
+                      final songState = snapshot.data ?? widget.songManager.getSongState();
+                      return Expanded(
+                      flex: 7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         Text(
-                          widget.currentSongTitle,
+                          songState['name'] ?? '',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.currentArtist,
+                          songState['artist'] ?? '',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 14,
+                          color: Colors.white.withAlpha((0.7 * 255).toInt()),
+                          fontSize: 14,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
+                        ],
+                      ),
+                      );
+                    },
                     ),
-                  ),
                   IconButton(
                     icon: Icon(
                       widget.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -388,7 +401,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                         stream: widget.songManager.isPlayingStream,
                         builder: (context, snapshot) {
                           return Icon(
-                            widget.isPlaying ? Icons.pause : Icons.play_arrow,
+                            widget.songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
                             color: Colors.black,
                             size: 38,
                           );

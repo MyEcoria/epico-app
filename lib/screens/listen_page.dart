@@ -422,6 +422,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     final mixSongs = (mix['songs'] ?? []) as List<dynamic>;
                     return GestureDetector(
                       onTap: () {
+                        widget.songManager.clearQueue();
                         for (int i = 0; i < mixSongs.length; i++) {
                           _playPause(
                             mixSongs[i]["song"] as String,
@@ -681,6 +682,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     final mixSongs = (mix['songs'] ?? []) as List<dynamic>;
                     return GestureDetector(
                       onTap: () {
+                        widget.songManager.clearQueue();
                         for (int i = 0; i < mixSongs.length; i++) {
                           _playPause(
                             mixSongs[i]["song"] as String,

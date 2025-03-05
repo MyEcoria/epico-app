@@ -38,9 +38,14 @@ class SongManager {
     return _audioPlayer.state == PlayerState.paused;
   }
 
+  bool isPausedSong(String songUrl) {
+    return _currentSongUrl == songUrl && _audioPlayer.state == PlayerState.paused;
+  }
+
   Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
   Stream<bool> get isPausedStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.paused);
   Stream<Duration> get positionStream => _audioPlayer.onPositionChanged;
+  Stream<Map<String, dynamic>> get songStateStream => _audioPlayer.onPlayerStateChanged.map((state) => getSongState());
 
   void addToQueue({
     required String name,
@@ -163,7 +168,9 @@ class SongManager {
         );
 
         if (!_isPlaying) {
-          await playNextInQueue();
+          await _audioPlayer.stop();
+          await _audioPlayer.play(UrlSource(songUrl));
+          _isPlaying = true;
 
           _audioPlayer.onPlayerComplete.listen((event) async {
             await playNextInQueue();
