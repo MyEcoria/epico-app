@@ -15,6 +15,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+import 'package:async/async.dart';
 
 void main() {
   runApp(const MyApp());
@@ -272,64 +273,72 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false, String artist = ""}) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            alignment: Alignment.center,
+    return StreamBuilder(
+      stream: StreamGroup.merge([widget.songManager.songStateStream, widget.songManager.isPlayingStream]),
+      builder: (context, snapshot) {
+        bool isPlaying = widget.songManager.isPlaying();
+        bool isPlayingSong = widget.songManager.isPlayingSong(url);
+
+        return Container(
+          width: 120,
+          margin: const EdgeInsets.only(right: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[800],
-                  image: DecorationImage(
-                    image: NetworkImage(imagePath),
-                    fit: BoxFit.cover,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey[800],
+                      image: DecorationImage(
+                        image: NetworkImage(imagePath),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                ),
+                  if (hasPlayButton)
+                    GestureDetector(
+                      onTap: () {
+                        _playPause(
+                          url,
+                          name: title,
+                          description: "Song from your collection",
+                          pictureUrl: imagePath,
+                          artist: artist,
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black54,
+                        ),
+                        child: Icon(
+                          isPlaying && isPlayingSong ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              if (hasPlayButton)
-                GestureDetector(
-                  onTap: () {
-                    _playPause(
-                      url,
-                      name: title,
-                      description: "Song from your collection",
-                      pictureUrl: imagePath,
-                      artist: artist,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black54,
-                    ),
-                    child: Icon(
-                      widget.songManager.isPlaying() && widget.songManager.isPlayingSong(url) ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
