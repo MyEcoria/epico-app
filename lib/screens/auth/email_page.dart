@@ -135,7 +135,8 @@ class _EmailScreenState extends State<EmailScreen> {
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isValidEmail ? Colors.blue : Colors.blue.withOpacity(0.5),
+                  backgroundColor: Colors.blue,
+                  disabledBackgroundColor: Colors.blue.withOpacity(0.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

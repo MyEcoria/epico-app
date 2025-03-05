@@ -99,6 +99,7 @@ flutter:
     - assets/logo.png
     - assets/logo.svg
     - assets/vinyle.png
+    - assets/undrawable/mail.svg
 
 flutter_launcher_icons:
   android: true
