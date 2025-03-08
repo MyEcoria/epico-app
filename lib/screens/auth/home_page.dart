@@ -14,6 +14,8 @@ import 'package:epico/screens/auth/login_page.dart';
 import 'package:epico/screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:epico/manage/song_manage.dart';
+import 'package:epico/manage/api_manage.dart';
+import 'package:epico/manage/cache_manage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -24,6 +26,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   late AnimationController _controller;
   final SongManager songManager = SongManager();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  CacheService cache = CacheService();
 
   @override
   void initState() {
@@ -38,10 +41,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _checkAuth() async {
     final authToken = await _storage.read(key: 'auth');
     if (authToken != null) {
-      // If auth token exists, navigate to listen page
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
-      );
+      try {
+        final userInfo = await MusicApiService().userInfo(authToken);
+        cache.setCacheValue('email', userInfo['email']);
+        // If auth token exists and user info is valid, navigate to listen page
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
+        );
+      } catch (e) {
+        debugPrint('Error fetching user info: $e');
+      }
+    } else {
+      debugPrint('No auth token found');
     }
   }
 

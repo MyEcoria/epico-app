@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
+import '../../manage/api_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -58,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isEmailValid = false;
   final _secureStorage = const FlutterSecureStorage();
   String? _cookieValue;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -74,9 +76,9 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> _storeCookie() async {
-    await _secureStorage.write(key: 'auth', value: 'example_cookie_value');
-    _loadCookie(); // Update the UI
+  Future<void> _storeCookie(String value) async {
+    await _secureStorage.write(key: 'auth', value: value);
+    _loadCookie();
   }
 
   @override
@@ -117,6 +119,49 @@ class _LoginPageState extends State<LoginPage> {
 
   bool get _isPasswordValid => _hasMinLength && _hasDigit && _hasSpecialChar;
   bool get _isFormValid => _isPasswordValid && _isEmailValid;
+
+  void _showErrorMessage(String message) {
+    _hideErrorMessage();
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).viewPadding.top,
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error, color: Colors.red),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: _hideErrorMessage,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context)?.insert(_overlayEntry!);
+  }
+
+  void _hideErrorMessage() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,16 +295,26 @@ class _LoginPageState extends State<LoginPage> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _isFormValid
-                    ? () {
-                        _storeCookie();
+                  ? () async {
+                    try {
+                      final apiService = MusicApiService();
+                      final response = await apiService.loginUser(_emailController.text, _passwordController.text);
+                      if (response['status'] == 'ok') {
+                        _storeCookie(response['cookie']);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => HomePage(),
+                          builder: (context) => HomePage(),
                           ),
-                        );
+                      );
+                      } else {
+                      _showErrorMessage('Failed to create user: ${response['message']}');
                       }
-                    : null,
+                    } catch (e) {
+                      _showErrorMessage('Error: $e');
+                    }
+                    }
+                  : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),

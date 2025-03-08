@@ -16,6 +16,7 @@ import 'screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'manage/song_manage.dart';
 import 'manage/api_manage.dart';
+import 'manage/cache_manage.dart';
 
 void main() {
   runApp(MyApp());
@@ -23,13 +24,14 @@ void main() {
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   bool _isLoading = true;
   bool _isAuthenticated = false;
+  CacheService cache = CacheService();
 
   @override
   void initState() {
@@ -38,12 +40,30 @@ class _MyAppState extends State<MyApp> {
     MusicApiService().getMe();
   }
 
+
+
   Future<void> _checkAuthentication() async {
     final authCookie = await _secureStorage.read(key: 'auth');
-    setState(() {
-      _isAuthenticated = authCookie != null;
-      _isLoading = false;
-    });
+    if (authCookie != null) {
+      try {
+        final userInfo = await MusicApiService().userInfo(authCookie);
+        cache.setCacheValue('email', userInfo['email']);
+        setState(() {
+          _isAuthenticated = true;
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _isAuthenticated = false;
+          _isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        _isAuthenticated = false;
+        _isLoading = false;
+      });
+    }
   }
 
   @override

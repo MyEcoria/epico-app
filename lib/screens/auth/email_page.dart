@@ -129,7 +129,7 @@ class _EmailScreenState extends State<EmailScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PasswordScreen(),
+                            builder: (context) => PasswordScreen(email: _emailController.text),
                           ),
                         );
                       }

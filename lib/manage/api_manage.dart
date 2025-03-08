@@ -9,6 +9,7 @@
 */
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -32,11 +33,16 @@ class MusicApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getLatestTracks() async {
+  Future<List<Map<String, dynamic>>> getLatestTracks(String cookie) async {
+    debugPrint('Cookie: $cookie');
     try {
-      final response = await http.post(Uri.parse('$baseUrl/latest'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/latest'),
+        headers: {'token': cookie}
+        );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
+        debugPrint('Latest tracks: $data');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load latest tracks: ${response.statusCode}');
@@ -99,6 +105,57 @@ class MusicApiService {
       }
     } catch (e) {
       throw Exception('Error fetching recommended playlists: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createUser(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/user/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': password}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating user: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> loginUser(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/user/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': password}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to login user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error logining user: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> userInfo(String cookie) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/user/info'),
+        headers: {'token': cookie},
+      );
+      if (response.statusCode == 200) {
+        debugPrint('User info: ${response.body}');
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load user info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching user info: $e');
     }
   }
 }

@@ -16,6 +16,7 @@ import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:async/async.dart';
+import '../manage/cache_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -58,10 +59,47 @@ class MusicAppHomePage extends StatefulWidget {
 }
 
 class _MusicAppHomePageState extends State<MusicAppHomePage> {
+  CacheService cache = CacheService();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? authCookie;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCookie();
+  }
+
+  Future<void> _loadCookie() async {
+    String? value = await _secureStorage.read(key: 'auth');
+    setState(() {
+      authCookie = value;
+    });
+  }
+
   @override
   void dispose() {
     widget.songManager.dispose();
     super.dispose();
+  }
+
+  String extractFirstNameFromEmail(String email) {
+    // Vérifier si l'email est au bon format
+    if (!email.contains('@epitech.eu')) {
+      throw ArgumentError('L\'email doit être au format prenom.nom@epitech.eu');
+    }
+
+    // Diviser l'email en deux parties : avant et après le '@'
+    List<String> parts = email.split('@');
+    String localPart = parts[0];
+
+    // Diviser la partie locale en deux parties : prénom et nom
+    List<String> nameParts = localPart.split('.');
+    String firstName = nameParts[0];
+
+    // Mettre la première lettre du prénom en majuscule
+    firstName = firstName[0].toUpperCase() + firstName.substring(1);
+
+    return firstName;
   }
 
   void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", bool instant = true}) async {
@@ -165,28 +203,29 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               size: 20,
             ),
             const SizedBox(width: 4),
-            FutureBuilder<String>(
-              future: FlutterSecureStorage().read(key: 'name').then((value) => value ?? ''),
+            FutureBuilder<String?>(
+              future: cache.getCacheValue('email') as Future<String?>?,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text(
-                    'Error: ${snapshot.error}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  );
-                } else {
-                  return Text(
-                    "Hi ${snapshot.data},",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  );
-                }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text(
+              'Error: ${snapshot.error}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            );
+          } else {
+            print('snapshot.data: ${snapshot.data}');
+            return Text(
+              "Hi ${extractFirstNameFromEmail(snapshot.data ?? 'default.name@epitech.eu')},",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            );
+          }
               },
             ),
           ],
@@ -201,9 +240,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           ),
           child: ClipOval(
             child: FutureBuilder<String?>(
-              future: FlutterSecureStorage().read(key: 'name'),
+              future: cache.getCacheValue('email') as Future<String?>?,
               builder: (context, snapshot) {
-                final username = snapshot.data ?? 'MyEcoria';
+                final username = extractFirstNameFromEmail(snapshot.data ?? 'default.name@epitech.eu');
                 return ProfilePicture(name: username, radius: 31, fontsize: 21);
               },
             ),
@@ -240,33 +279,35 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: MusicApiService().getLatestTracks(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No tracks available'));
-              } else {
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final track = snapshot.data![index];
-                    return _buildAlbumCard(
-                      track['name'] ?? 'Unknown Title',
-                      track['picture'] ?? 'assets/caca.jpg',
-                      track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-                      artist: track['artist'] ?? 'MyEcoria',
-                      hasPlayButton: true,
-                    );
+          child: authCookie == null
+              ? const Center(child: Text('No auth cookie available'))
+              : FutureBuilder<List<Map<String, dynamic>>>(
+                  future: MusicApiService().getLatestTracks(authCookie!),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No tracks available'));
+                    } else {
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final track = snapshot.data![index];
+                          return _buildAlbumCard(
+                            track['title'] ?? 'Unknown Title',
+                            track['cover'] ?? 'assets/caca.jpg',
+                            track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                            artist: track['auteur'] ?? 'MyEcoria',
+                            hasPlayButton: true,
+                          );
+                        },
+                      );
+                    }
                   },
-                );
-              }
-            },
-          ),
+                ),
         ),
       ],
     );
