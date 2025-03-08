@@ -177,11 +177,11 @@ class MusicApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getFlowNew(String cookie) async {
+  Future<List<Map<String, dynamic>>> getFlow(String cookie, String type) async {
     debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/music/flow/new'),
+        Uri.parse('$baseUrl/music/flow/$type'),
         headers: {'token': cookie}
         );
       if (response.statusCode == 200) {

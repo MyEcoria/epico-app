@@ -405,17 +405,49 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           children: [
         GestureDetector(
           onTap: () {
-            MusicApiService().getFlowNew(authCookie!).then((value) {
+            MusicApiService().getFlow(authCookie!, "new").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
             print("New flow item clicked");
           },
           child: _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
         ),
-        _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
-        _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
-        _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
-        _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
+        GestureDetector(
+          onTap: () {
+            MusicApiService().getFlow(authCookie!, "train").then((value) {
+              widget.songManager.lunchPlaylist(value);
+            });
+            print("New flow item clicked");
+          },
+          child: _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
+        ),
+        GestureDetector(
+          onTap: () {
+            MusicApiService().getFlow(authCookie!, "party").then((value) {
+              widget.songManager.lunchPlaylist(value);
+            });
+            print("New flow item clicked");
+          },
+          child: _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
+        ),
+        GestureDetector(
+          onTap: () {
+            MusicApiService().getFlow(authCookie!, "sad").then((value) {
+              widget.songManager.lunchPlaylist(value);
+            });
+            print("New flow item clicked");
+          },
+          child: _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
+        ),
+        GestureDetector(
+          onTap: () {
+            MusicApiService().getFlow(authCookie!, "chill").then((value) {
+              widget.songManager.lunchPlaylist(value);
+            });
+            print("New flow item clicked");
+          },
+          child: _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
+        ),
           ],
         ),
       ],
