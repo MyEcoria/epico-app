@@ -76,7 +76,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
 
   void _handlePlayPause() {
     final songState = widget.songManager.getSongState();
-    widget.songManager.togglePlaySong(name: songState['name'], description: songState['description'], songUrl: songState['songUrl'], pictureUrl: songState['pictureUrl'], artist: songState['artist']);
+    widget.songManager.togglePlaySong(name: songState['name'], description: songState['description'], songUrl: songState['songUrl'], pictureUrl: songState['pictureUrl'], artist: songState['artist'], songId: songState['songId']);
   }
 
   String _formatDuration(Duration duration) {

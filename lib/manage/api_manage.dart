@@ -158,4 +158,41 @@ class MusicApiService {
       throw Exception('Error fetching user info: $e');
     }
   }
+
+  Future<Map<String, dynamic>> createSongAuth(String songId, String token) async {
+    debugPrint('Creating song auth for song: $songId');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/auth'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+        body: json.encode({'song_id': songId}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getFlowNew(String cookie) async {
+    debugPrint('Cookie: $cookie');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/flow/new'),
+        headers: {'token': cookie}
+        );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        debugPrint('Latest New: ${data.length}');
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load latest tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching latest tracks: $e');
+    }
+  }
 }

@@ -8,9 +8,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'api_manage.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -18,6 +21,7 @@ class SongManager {
   String? _currentPictureUrl;
   String? _currentDescription;
   String? _currentArtist;
+  String? _currentSongId;
 
   final List<Map<String, dynamic>> _queue = [];
   static int _queueIndex = 0;
@@ -53,6 +57,7 @@ class SongManager {
     required String songUrl,
     required String pictureUrl,
     required String artist,
+    required String songId,
   }) {
     _queue.add({
       'name': name,
@@ -60,6 +65,7 @@ class SongManager {
       'songUrl': songUrl,
       'pictureUrl': pictureUrl,
       'artist': artist,
+      'songId': songId,
     });
     debugPrint('Added song to queue: $name');
   }
@@ -70,21 +76,24 @@ class SongManager {
 
   void clearQueue() {
     _queue.clear();
+    _queueIndex = 0;
   }
 
   Future<void> playNextInQueue() async {
-    if (_queue.length < _queueIndex) {
-      return;
+    if (_queueIndex < _queue.length - 1) {
+      _queueIndex++;
+      await togglePlaySong(
+        name: _queue[_queueIndex]['name'],
+        description: _queue[_queueIndex]['description'],
+        songUrl: _queue[_queueIndex]['songUrl'],
+        pictureUrl: _queue[_queueIndex]['pictureUrl'],
+        artist: _queue[_queueIndex]['artist'],
+        songId: _queue[_queueIndex]['songId'],
+        instant: true,
+      );
+    } else {
+      debugPrint('No more songs in the queue.');
     }
-    _queueIndex++;
-    await togglePlaySong(
-      name: _queue[_queueIndex]['name'],
-      description: _queue[_queueIndex]['description'],
-      songUrl: _queue[_queueIndex]['songUrl'],
-      pictureUrl: _queue[_queueIndex]['pictureUrl'],
-      artist: _queue[_queueIndex]['artist'],
-      instant: true,
-    );
   }
 
   Future<void> playLastFromQueue() async {
@@ -98,6 +107,7 @@ class SongManager {
       songUrl: _queue[_queueIndex]['songUrl'],
       pictureUrl: _queue[_queueIndex]['pictureUrl'],
       artist: _queue[_queueIndex]['artist'],
+      songId: _queue[_queueIndex]['songId'],
       instant: true,
     );
   }
@@ -105,22 +115,35 @@ class SongManager {
   Future<void> lunchPlaylist(List<Map<String, dynamic>> playlist) async {
     clearQueue();
     for (var element in playlist) {
+      if (element['title'] != null && element['song'] != null &&
+        element['cover'] != null && element['auteur'] != null && element['song_id'] != null &&
+        element['title'] is String && element['song'] is String &&
+        element['cover'] is String && element['auteur'] is String && element['song_id'] is String) {
+      debugPrint('Adding song to queue: ${element['title']}');
       addToQueue(
-        name: element['name'],
-        description: element['description'],
-        songUrl: element['songUrl'],
-        pictureUrl: element['pictureUrl'],
-        artist: element['artist'],
+        name: element['title'],
+        description: "",
+        songUrl: element['song'],
+        pictureUrl: element['cover'],
+        artist: element['auteur'],
+        songId: element['song_id'],
       );
+      } else {
+      debugPrint('Skipping song with missing information: $element');
+      }
     }
-    await togglePlaySong(
+    if (_queue.isNotEmpty) {
+      await togglePlaySong(
       name: _queue[_queueIndex]['name'],
       description: _queue[_queueIndex]['description'],
       songUrl: _queue[_queueIndex]['songUrl'],
       pictureUrl: _queue[_queueIndex]['pictureUrl'],
       artist: _queue[_queueIndex]['artist'],
-      instant: true,
-    );
+      songId: _queue[_queueIndex]['songId'],
+      );
+    } else {
+      debugPrint('No valid songs to play.');
+    }
   }
 
   Future<void> togglePlaySong({
@@ -129,6 +152,7 @@ class SongManager {
     required String songUrl,
     required String pictureUrl,
     required String artist,
+    required String songId,
     bool instant = true,
   }) async {
     try {
@@ -150,10 +174,18 @@ class SongManager {
         _currentSongUrl = songUrl;
         _currentPictureUrl = pictureUrl;
         _currentArtist = artist;
+        _currentSongId = songId;
 
         await _audioPlayer.stop();
-        await _audioPlayer.play(UrlSource(songUrl));
+        final authCookie = await _secureStorage.read(key: 'auth');
+        if (authCookie != null) {
+          final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
+          await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
         _isPlaying = true;
+
+        } else {
+          throw Exception('Auth cookie is null');
+        }
 
         _audioPlayer.onPlayerComplete.listen((event) async {
           await playNextInQueue();
@@ -165,12 +197,20 @@ class SongManager {
           songUrl: songUrl,
           pictureUrl: pictureUrl,
           artist: artist,
+          songId: songId,
         );
 
         if (!_isPlaying) {
           await _audioPlayer.stop();
-          await _audioPlayer.play(UrlSource(songUrl));
+          final authCookie = await _secureStorage.read(key: 'auth');
+          if (authCookie != null) {
+            final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
+            await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
           _isPlaying = true;
+
+          } else {
+            throw Exception('Auth cookie is null');
+          }
 
           _audioPlayer.onPlayerComplete.listen((event) async {
             await playNextInQueue();
@@ -191,6 +231,7 @@ class SongManager {
       'songUrl': _currentSongUrl,
       'pictureUrl': _currentPictureUrl,
       'artist': _currentArtist,
+      'songId': _currentSongId,
     };
   }
 

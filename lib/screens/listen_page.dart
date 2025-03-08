@@ -102,7 +102,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     return firstName;
   }
 
-  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", bool instant = true}) async {
+  void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", String songId = "", bool instant = true}) async {
     debugPrint('Toggling play/pause for $name/$songUrl/$pictureUrl/$artist/$instant/$description');
     await widget.songManager.togglePlaySong(
       name: name,
@@ -111,6 +111,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       pictureUrl: pictureUrl,
       artist: artist,
       instant: instant,
+      songId: songId,
     );
     setState(() {});
   }
@@ -165,6 +166,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 name: songState['name'] ?? "Blinding Lights",
                 description: songState['description'] ?? "",
                 pictureUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+                songId: songState['song_id'] ?? "",
               ),
               lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
               isFavorite: false,
@@ -267,13 +269,13 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            Text(
-              "See more",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
+            // Text(
+            //   "See more",
+            //   style: TextStyle(
+            //     fontSize: 14,
+            //     color: Colors.white,
+            //   ),
+            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -301,6 +303,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             track['cover'] ?? 'assets/caca.jpg',
                             track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
                             artist: track['auteur'] ?? 'MyEcoria',
+                            songId: track['song_id'] ?? "",
                             hasPlayButton: true,
                           );
                         },
@@ -313,7 +316,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false, String artist = ""}) {
+  Widget _buildAlbumCard(String title, String imagePath, String url, {bool hasPlayButton = false, String artist = "", String songId = ""}) {
     return StreamBuilder(
       stream: StreamGroup.merge([widget.songManager.songStateStream, widget.songManager.isPlayingStream]),
       builder: (context, snapshot) {
@@ -349,6 +352,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           description: "Song from your collection",
                           pictureUrl: imagePath,
                           artist: artist,
+                          songId: songId,
                         );
                       },
                       child: Container(
@@ -390,20 +394,28 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const Text(
           "Flow",
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
           ),
         ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
-            _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
-            _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
-            _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
-            _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
+        GestureDetector(
+          onTap: () {
+            MusicApiService().getFlowNew(authCookie!).then((value) {
+              widget.songManager.lunchPlaylist(value);
+            });
+            print("New flow item clicked");
+          },
+          child: _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
+        ),
+        _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
+        _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
+        _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
+        _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
           ],
         ),
       ],
@@ -480,6 +492,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             description: "From ${mix["name"]}",
                             pictureUrl: mixSongs[i]["picture"] as String,
                             artist: mixSongs[i]["artist"] as String,
+                            songId: mixSongs[i]["song_id"] as String,
                             instant: i == 0,
                           );
                         }
@@ -551,13 +564,13 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            Text(
-              "See more",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
+            // Text(
+            //   "See more",
+            //   style: TextStyle(
+            //     fontSize: 14,
+            //     color: Colors.white,
+            //   ),
+            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -655,13 +668,13 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            Text(
-              "See more",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
+            // Text(
+            //   "See more",
+            //   style: TextStyle(
+            //     fontSize: 14,
+            //     color: Colors.white,
+            //   ),
+            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -740,6 +753,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             description: "From ${mix["name"]}",
                             pictureUrl: mixSongs[i]["picture"] as String,
                             artist: mixSongs[i]["artist"] as String,
+                            songId: mixSongs[i]["song_id"] as String,
                             instant: i == 0,
                           );
                         }
