@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
+import '../../manage/api_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,12 +13,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: PasswordScreen(),
+      home: PasswordScreen(email: 'your.name@epitech.eu'),
     );
   }
 }
 
 class PasswordScreen extends StatefulWidget {
+  final String email;
+
+  PasswordScreen({required this.email});
+
   @override
   State<PasswordScreen> createState() => _PasswordScreenState();
 }
@@ -29,17 +34,20 @@ class _PasswordScreenState extends State<PasswordScreen> {
   bool _hasDigit = false;
   bool _hasSpecialChar = false;
   String _passwordStrength = "";
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validatePassword);
+    print("Email from previous page: ${widget.email}"); // Example usage
   }
 
   @override
   void dispose() {
     _passwordController.removeListener(_validatePassword);
     _passwordController.dispose();
+    _hideErrorMessage();
     super.dispose();
   }
 
@@ -49,7 +57,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
       _hasMinLength = password.length >= 8;
       _hasDigit = RegExp(r'[0-9]').hasMatch(password);
       _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
-      
+
       if (password.isEmpty) {
         _passwordStrength = "";
       } else if (_hasMinLength && _hasDigit && _hasSpecialChar) {
@@ -63,6 +71,49 @@ class _PasswordScreenState extends State<PasswordScreen> {
   }
 
   bool get _isPasswordValid => _hasMinLength && _hasDigit && _hasSpecialChar;
+
+  void _showErrorMessage(String message) {
+    _hideErrorMessage();
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).viewPadding.top,
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error, color: Colors.red),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: _hideErrorMessage,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context)?.insert(_overlayEntry!);
+  }
+
+  void _hideErrorMessage() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,10 +209,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       ? Text(
                           _passwordStrength,
                           style: TextStyle(
-                            color: _passwordStrength == "Strong" 
-                                ? Colors.green 
-                                : _passwordStrength == "Medium" 
-                                    ? Colors.orange 
+                            color: _passwordStrength == "Strong"
+                                ? Colors.green
+                                : _passwordStrength == "Medium"
+                                    ? Colors.orange
                                     : Colors.red,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -176,14 +227,26 @@ class _PasswordScreenState extends State<PasswordScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isPasswordValid ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ConfirmationPage(),
-                    ),
-                  );
-                } : null,
+                onPressed: _isPasswordValid
+                  ? () async {
+                    try {
+                      final apiService = MusicApiService();
+                      final response = await apiService.createUser(widget.email, _passwordController.text);
+                      if (response['status'] == 'ok') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => ConfirmationPage(),
+                        ),
+                      );
+                      } else {
+                      _showErrorMessage('Failed to create user: ${response['message']}');
+                      }
+                    } catch (e) {
+                      _showErrorMessage('Error: $e');
+                    }
+                    }
+                  : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),
@@ -212,11 +275,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isValid ? Colors.green : Colors.transparent,
-            border: isValid 
-                ? null 
+            border: isValid
+                ? null
                 : Border.all(color: Colors.grey, width: 1),
           ),
-          child: isValid 
+          child: isValid
               ? Icon(Icons.check, size: 14, color: Colors.white)
               : null,
         ),

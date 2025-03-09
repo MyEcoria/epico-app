@@ -1,10 +1,21 @@
+/*
+** EPITECH PROJECT, 2025
+** home_page.dart
+** File description:
+** Home page for the Deezer app.
+** This file contains the UI and logic for the home screen.
+** It handles authentication checks and navigation to the appropriate screens.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:deezer_app/screens/auth/email_page.dart';
-import 'package:deezer_app/screens/auth/login_page.dart';
-import 'package:deezer_app/screens/listen_page.dart';
+import 'package:epico/screens/auth/email_page.dart';
+import 'package:epico/screens/auth/login_page.dart';
+import 'package:epico/screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:deezer_app/manage/song_manage.dart';
+import 'package:epico/manage/song_manage.dart';
+import 'package:epico/manage/api_manage.dart';
+import 'package:epico/manage/cache_manage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,6 +26,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   late AnimationController _controller;
   final SongManager songManager = SongManager();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  CacheService cache = CacheService();
 
   @override
   void initState() {
@@ -29,10 +41,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _checkAuth() async {
     final authToken = await _storage.read(key: 'auth');
     if (authToken != null) {
-      // If auth token exists, navigate to listen page
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
-      );
+      try {
+        final userInfo = await MusicApiService().userInfo(authToken);
+        cache.setCacheValue('email', userInfo['email']);
+        // If auth token exists and user info is valid, navigate to listen page
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
+        );
+      } catch (e) {
+        debugPrint('Error fetching user info: $e');
+      }
+    } else {
+      debugPrint('No auth token found');
     }
   }
 
@@ -52,7 +72,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // En-tête
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -69,19 +89,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   fontSize: 16,
                 ),
               ),
-              // SizedBox(height: 90),
-              // RotationTransition(
-              //   turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
-              //   child: Image.asset(
-              //     'assets/vinyle.png',
-              //     width: 200,
-              //     height: 200,
-              //     fit: BoxFit.contain,
-              //   ),
-              // ),
-              // SizedBox(height: 20),
               Spacer(),
-              // Boutons
+              // Buttons
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -100,33 +109,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 child: Text('Sign up'),
               ),
               SizedBox(height: 16),
-              // ElevatedButton(
-              //   onPressed: () {
-              //     // Logique pour continuer avec Microsoft
-              //   },
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: Colors.black,
-              //     foregroundColor: Colors.white,
-              //     minimumSize: Size(double.infinity, 50),
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(25),
-              //       side: BorderSide(color: Colors.white),
-              //     ),
-              //   ),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       Image.asset(
-              //         'assets/microsoft_logo.png', // Assurez-vous d'avoir le logo Microsoft dans vos assets
-              //         width: 24,
-              //         height: 24,
-              //       ),
-              //       SizedBox(width: 8),
-              //       Text('Continue with Microsoft'),
-              //     ],
-              //   ),
-              // ),
-              SizedBox(height: 15),
               TextButton(
                 onPressed: () {
                   Navigator.push(

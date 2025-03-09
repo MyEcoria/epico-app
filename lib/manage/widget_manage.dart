@@ -1,3 +1,12 @@
+/*
+** EPITECH PROJECT, 2025
+** audio_player_widget.dart
+** File description:
+** Widget for audio player UI, including mini and expanded player views.
+** This file contains the UI and logic for the audio player, including playback controls,
+** progress bar, and song information.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'song_manage.dart';
@@ -66,7 +75,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   void _handlePlayPause() {
-    widget.onPlayPause();
+    final songState = widget.songManager.getSongState();
+    widget.songManager.togglePlaySong(name: songState['name'], description: songState['description'], songUrl: songState['songUrl'], pictureUrl: songState['pictureUrl'], artist: songState['artist'], songId: songState['songId']);
   }
 
   String _formatDuration(Duration duration) {
@@ -97,85 +107,92 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
       stream: widget.songManager.isPlayingStream,
       builder: (context, snapshot) {
         bool isPlaying = snapshot.data ?? false;
-        if (!isPlaying) {
-          return SizedBox.shrink();
-        }
-        return GestureDetector(
-          onTap: () {
-            _showExpandedPlayer(context);
-          },
-          onVerticalDragEnd: (details) {
-            if (details.primaryVelocity! < 0) {
-              _showExpandedPlayer(context);
+        return StreamBuilder<bool>(
+          stream: widget.songManager.isPausedStream,
+          builder: (context, pausedSnapshot) {
+            bool isPaused = pausedSnapshot.data ?? false;
+            if (!isPlaying && !isPaused) {
+              return SizedBox.shrink();
+            } else {
+              return GestureDetector(
+                onTap: () {
+                  _showExpandedPlayer(context);
+                },
+                onVerticalDragEnd: (details) {
+                  if (details.primaryVelocity! < 0) {
+                    _showExpandedPlayer(context);
+                  }
+                },
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        margin: const EdgeInsets.only(left: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          image: DecorationImage(
+                            image: NetworkImage(widget.songManager.getSongState()['pictureUrl']),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.songManager.getSongState()['name'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                widget.songManager.getSongState()['artist'],
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha((0.7 * 255).toInt()),
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed: _handlePlayPause,
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
           },
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  margin: const EdgeInsets.only(left: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    image: DecorationImage(
-                      image: NetworkImage(widget.albumArtUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.currentSongTitle,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          widget.currentArtist,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: _handlePlayPause,
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
@@ -185,7 +202,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.95,
+      initialChildSize: 0.97,
       minChildSize: 0.9,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
@@ -200,19 +217,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             controller: scrollController,
             padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 24.0, bottom: 40.0),
             children: [
-              // // Drag handle
-              // Center(
-              //   child: Container(
-              //     width: 40,
-              //     height: 5,
-              //     decoration: BoxDecoration(
-              //       color: Colors.grey[600],
-              //       borderRadius: BorderRadius.circular(2.5),
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 20),
-              // Top bar with down arrow and "Connect to a device" button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -233,72 +237,68 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Album artwork
-              Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: MediaQuery.of(context).size.width * 0.8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
+                StreamBuilder<Map<String, String>>(
+                stream: widget.songManager.songStateStream.cast<Map<String, String>>(),
+                builder: (context, snapshot) {
+                  final songState = snapshot.data ?? widget.songManager.getSongState();
+                  return Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.width * 0.8,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
-                  ],
-                  image: DecorationImage(
-                    image: NetworkImage(widget.albumArtUrl),
+                    ],
+                    image: DecorationImage(
+                    image: NetworkImage(songState['pictureUrl'] ?? ''),
                     fit: BoxFit.cover,
+                    ),
                   ),
+                  );
+                },
                 ),
-              ),
               const SizedBox(height: 40),
-              // Lyrics excerpt
-              // Container(
-              //   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              //   child: Text(
-              //     widget.lyricsExcerpt,
-              //     textAlign: TextAlign.center,
-              //     style: TextStyle(
-              //       color: Colors.white.withOpacity(0.7),
-              //       fontStyle: FontStyle.italic,
-              //       fontSize: 14,
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 20),
-              // Song title and action buttons (favorite, share)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 7,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    StreamBuilder<Map<String, String>>(
+                    stream: widget.songManager.songStateStream.cast<Map<String, String>>(),
+                    builder: (context, snapshot) {
+                      final songState = snapshot.data ?? widget.songManager.getSongState();
+                      return Expanded(
+                      flex: 7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         Text(
-                          widget.currentSongTitle,
+                          songState['name'] ?? '',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.currentArtist,
+                          songState['artist'] ?? '',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 14,
+                          color: Colors.white.withAlpha((0.7 * 255).toInt()),
+                          fontSize: 14,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
+                        ],
+                      ),
+                      );
+                    },
                     ),
-                  ),
                   IconButton(
                     icon: Icon(
                       widget.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -313,12 +313,17 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Progress bar
               Row(
                 children: [
-                  Text(
-                    _formatDuration(_position),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  StreamBuilder<Duration>(
+                    stream: widget.songManager.positionStream,
+                    builder: (context, snapshot) {
+                      _position = snapshot.data ?? Duration.zero;
+                      return Text(
+                        _formatDuration(_position),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      );
+                    },
                   ),
                   Expanded(
                     child: StreamBuilder<Duration>(
@@ -369,13 +374,12 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Playback controls
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
-                    onPressed: widget.onPrevious,
+                    onPressed: widget.songManager.playLastFromQueue,
                   ),
                   GestureDetector(
                     onTap: _handlePlayPause,
@@ -397,7 +401,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                         stream: widget.songManager.isPlayingStream,
                         builder: (context, snapshot) {
                           return Icon(
-                            widget.isPlaying ? Icons.pause : Icons.play_arrow,
+                            widget.songManager.isPlaying() ? Icons.pause : Icons.play_arrow,
                             color: Colors.black,
                             size: 38,
                           );
@@ -407,41 +411,11 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_next, color: Colors.white, size: 36),
-                    onPressed: widget.onNext,
+                    onPressed: widget.songManager.playNextInQueue,
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              // Next song info
-              // Container(
-              //   padding: const EdgeInsets.all(16),
-              //   decoration: BoxDecoration(
-              //     color: Colors.white.withOpacity(0.1),
-              //     borderRadius: BorderRadius.circular(8),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       const Icon(Icons.queue_music, color: Colors.white70),
-              //       const SizedBox(width: 16),
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             const Text(
-              //               "Next",
-              //               style: TextStyle(color: Colors.white70, fontSize: 12),
-              //             ),
-              //             Text(
-              //               "${widget.nextSongTitle} · ${widget.nextSongArtist}",
-              //               style: const TextStyle(color: Colors.white, fontSize: 14),
-              //               overflow: TextOverflow.ellipsis,
-              //             ),
-              //           ],
-              //         ),
-              //       )
-              //     ],
-              //   ),
-              // ),
             ],
           ),
         );

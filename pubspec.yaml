@@ -1,4 +1,4 @@
-name: deezer_app
+name: epico
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -39,6 +39,7 @@ dependencies:
   just_audio: ^0.9.46
   audioplayers: ^6.2.0
   flutter_profile_picture: ^2.0.0
+  shared_preferences: ^2.5.2
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +51,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: "^0.14.3"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -98,3 +100,9 @@ flutter:
     - assets/logo.png
     - assets/logo.svg
     - assets/vinyle.png
+    - assets/undrawable/mail.svg
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"

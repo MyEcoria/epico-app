@@ -1,7 +1,18 @@
+/*
+** EPITECH PROJECT, 2025
+** login_page.dart
+** File description:
+** Login page for the Deezer app.
+** This file contains the UI and logic for the login screen.
+** It validates the email and password, stores the authentication cookie,
+** and navigates to the home page upon successful login.
+*/
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
+import '../../manage/api_manage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isEmailValid = false;
   final _secureStorage = const FlutterSecureStorage();
   String? _cookieValue;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -57,16 +69,16 @@ class _LoginPageState extends State<LoginPage> {
     _loadCookie();
   }
 
-  _loadCookie() async {
+  Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
     setState(() {
       _cookieValue = value;
     });
   }
 
-  _storeCookie() async {
-    await _secureStorage.write(key: 'auth', value: 'example_cookie_value');
-    _loadCookie(); // Met à jour l'interface utilisateur
+  Future<void> _storeCookie(String value) async {
+    await _secureStorage.write(key: 'auth', value: value);
+    _loadCookie();
   }
 
   @override
@@ -77,7 +89,6 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     super.dispose();
   }
-  
 
   void _validateEmail() {
     final email = _emailController.text;
@@ -93,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
       _hasMinLength = password.length >= 8;
       _hasDigit = RegExp(r'[0-9]').hasMatch(password);
       _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
-      
+
       if (password.isEmpty) {
         _passwordStrength = "";
       } else if (_hasMinLength && _hasDigit && _hasSpecialChar) {
@@ -108,6 +119,49 @@ class _LoginPageState extends State<LoginPage> {
 
   bool get _isPasswordValid => _hasMinLength && _hasDigit && _hasSpecialChar;
   bool get _isFormValid => _isPasswordValid && _isEmailValid;
+
+  void _showErrorMessage(String message) {
+    _hideErrorMessage();
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).viewPadding.top,
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error, color: Colors.red),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: _hideErrorMessage,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context)?.insert(_overlayEntry!);
+  }
+
+  void _hideErrorMessage() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,10 +276,10 @@ class _LoginPageState extends State<LoginPage> {
                       ? Text(
                           _passwordStrength,
                           style: TextStyle(
-                            color: _passwordStrength == "Strong" 
-                                ? Colors.green 
-                                : _passwordStrength == "Medium" 
-                                    ? Colors.orange 
+                            color: _passwordStrength == "Strong"
+                                ? Colors.green
+                                : _passwordStrength == "Medium"
+                                    ? Colors.orange
                                     : Colors.red,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -240,15 +294,27 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isFormValid ? () {
-                  _storeCookie();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ),
-                  );
-                } : null,
+                onPressed: _isFormValid
+                  ? () async {
+                    try {
+                      final apiService = MusicApiService();
+                      final response = await apiService.loginUser(_emailController.text, _passwordController.text);
+                      if (response['status'] == 'ok') {
+                        _storeCookie(response['cookie']);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                          builder: (context) => HomePage(),
+                          ),
+                      );
+                      } else {
+                      _showErrorMessage('Failed to create user: ${response['message']}');
+                      }
+                    } catch (e) {
+                      _showErrorMessage('Error: $e');
+                    }
+                    }
+                  : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   disabledBackgroundColor: Colors.blue.withOpacity(0.5),
@@ -277,11 +343,11 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isValid ? Colors.green : Colors.transparent,
-            border: isValid 
-                ? null 
+            border: isValid
+                ? null
                 : Border.all(color: Colors.grey, width: 1),
           ),
-          child: isValid 
+          child: isValid
               ? Icon(Icons.check, size: 14, color: Colors.white)
               : null,
         ),
