@@ -144,8 +144,8 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     _buildArtistsYouFollow(),
                     const SizedBox(height: 24),
                     _buildNewReleases(),
-                    const SizedBox(height: 24),
-                    _buildRecommendedPlaylists(),
+                    // const SizedBox(height: 24),
+                    // _buildRecommendedPlaylists(),
                   ],
                 ),
               ),
@@ -408,7 +408,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "new").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            print("New flow item clicked");
+            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
         ),
@@ -417,7 +417,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "train").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            print("New flow item clicked");
+            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
         ),
@@ -426,7 +426,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "party").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            print("New flow item clicked");
+            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
         ),
@@ -435,7 +435,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "sad").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            print("New flow item clicked");
+            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
         ),
@@ -444,7 +444,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "chill").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            print("New flow item clicked");
+            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
         ),
@@ -484,102 +484,91 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildMixesForYou() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Mixes for you",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        "Mixes for you",
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 200,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: MusicApiService().getForYouTracks(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No mixes available'));
-              } else {
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final mix = snapshot.data![index];
-                    final mixSongs = (mix['songs'] ?? []) as List<dynamic>;
-                    return GestureDetector(
-                      onTap: () {
-                        widget.songManager.clearQueue();
-                        for (int i = 0; i < mixSongs.length; i++) {
-                          _playPause(
-                            mixSongs[i]["song"] as String,
-                            name: mixSongs[i]["name"] as String,
-                            description: "From ${mix["name"]}",
-                            pictureUrl: mixSongs[i]["picture"] as String,
-                            artist: mixSongs[i]["artist"] as String,
-                            songId: mixSongs[i]["song_id"] as String,
-                            instant: i == 0,
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: 160,
-                        margin: const EdgeInsets.only(right: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 130,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.grey[800],
-                                image: DecorationImage(
-                                  image: NetworkImage(mixSongs[0]["picture"] as String),
-                                  fit: BoxFit.cover,
+      ),
+      const SizedBox(height: 16),
+      SizedBox(
+        height: 160,
+        child: authCookie == null
+            ? const Center(child: Text('No auth cookie available'))
+            : FutureBuilder<List<Map<String, dynamic>>>(
+                future: MusicApiService().getForYouTrack(authCookie!),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No tracks available'));
+                  } else {
+                    return Expanded(
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final track = snapshot.data![index];
+                          debugPrint('Track: $track');
+                          return GestureDetector(
+                            onTap: () {
+                              widget.songManager.lunchPlaylist(
+                                  List<Map<String, dynamic>>.from(snapshot.data![index]['playlist']));
+                            },
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 160,
+                                  margin: const EdgeInsets.only(right: 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        height: 130,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: Colors.grey[800],
+                                          image: DecorationImage(
+                                            image: NetworkImage(track["cover"] ?? 'https://example.com/default_image.jpg'),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        track["title"] ?? 'Unknown Title',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              mix["name"] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              mix["artist"] as String,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     );
-                  },
-                );
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
+                  }
+                },
+              ),
+      ),
+    ],
+  );
+}
+
 
   Widget _buildArtistsYouFollow() {
     return Column(
@@ -606,8 +595,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           ],
         ),
         const SizedBox(height: 16),
-        FutureBuilder<List<Map<String, dynamic>>>(
-          future: MusicApiService().getFollowTracks(),
+        authCookie == null
+            ? const Center(child: Text('No auth cookie available'))
+            : FutureBuilder<List<Map<String, dynamic>>>(
+                future: MusicApiService().getFromFollow(authCookie!),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -622,58 +613,70 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final release = snapshot.data![index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(
-                              image: NetworkImage(release["picture"] ?? 'https://example.com/default_image.jpg'),
-                              fit: BoxFit.cover,
+                  return GestureDetector(
+                    onTap: () {
+                      _playPause(
+                        release["song"] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                        name: release["title"] ?? 'Unknown Title',
+                        description: "From Artists You Follow",
+                        pictureUrl: release["cover"] ?? 'https://example.com/default_image.jpg',
+                        artist: release["auteur"] ?? 'Unknown Auteur',
+                        songId: release["song_id"] ?? "",
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                image: NetworkImage(release["cover"] ?? 'https://example.com/default_image.jpg'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                release["artist"] ?? 'Unknown Artist',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  release["title"] ?? 'Unknown Title',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                release["name"] ?? 'Unknown Title',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
+                                const SizedBox(height: 2),
+                                Text(
+                                  release["auteur"] ?? 'Unknown Auteur',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white70,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                release["date"] ?? 'Unknown Time',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white54,
+                                const SizedBox(height: 2),
+                                Text(
+                                  DateTime.fromMillisecondsSinceEpoch(int.parse(release["date"]) * 1000).toString(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white54,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () {},
-                        ),
-                      ],
+                          IconButton(
+                            icon: const Icon(Icons.more_vert, color: Colors.white),
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -712,33 +715,36 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: MusicApiService().getNewReleases(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No tracks available'));
-              } else {
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final track = snapshot.data![index];
-                    return _buildAlbumCard(
-                      track['name'] ?? 'Unknown Title',
-                      track['picture'] ?? 'assets/caca.jpg',
-                      track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-                      artist: track['artist'] ?? 'MyEcoria',
-                      hasPlayButton: true,
-                    );
+          child: authCookie == null
+              ? const Center(child: Text('No auth cookie available'))
+              : FutureBuilder<List<Map<String, dynamic>>>(
+                  future: MusicApiService().getNewTracks(authCookie!),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No tracks available'));
+                    } else {
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final track = snapshot.data![index];
+                          return _buildAlbumCard(
+                            track['title'] ?? 'Unknown Title',
+                            track['cover'] ?? 'assets/caca.jpg',
+                            track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                            artist: track['auteur'] ?? 'MyEcoria',
+                            songId: track['song_id'] ?? "",
+                            hasPlayButton: true,
+                          );
+                        },
+                      );
+                    }
                   },
-                );
-              }
-            },
-          ),
+                ),
         ),
       ],
     );
@@ -759,8 +765,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 200,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: MusicApiService().getForYouTracks(),
+          child: authCookie == null
+              ? const Center(child: Text('No auth cookie available'))
+              : FutureBuilder<List<Map<String, dynamic>>>(
+                  future: MusicApiService().getForYouTrack(authCookie!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
