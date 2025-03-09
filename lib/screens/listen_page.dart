@@ -103,7 +103,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   void _playPause(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", String songId = "", bool instant = true}) async {
-    debugPrint('Toggling play/pause for $name/$songUrl/$pictureUrl/$artist/$instant/$description');
     await widget.songManager.togglePlaySong(
       name: name,
       description: description,
@@ -408,7 +407,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "new").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("New", "https://cdn-images.dzcdn.net/images/cover/787022e34fd666a8c1e9bff902083001/232x232-none-80-0-0.png"),
         ),
@@ -417,7 +415,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "train").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Train", "https://cdn-images.dzcdn.net/images/cover/0a6be3cc85fdaf033e0529f04acac686/232x232-none-80-0-0.png"),
         ),
@@ -426,7 +423,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "party").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Party", "https://cdn-images.dzcdn.net/images/cover/d4b988bf7b4c286b0fa5cc60190a3275/232x232-none-80-0-0.png"),
         ),
@@ -435,7 +431,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "sad").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Sad", "https://cdn-images.dzcdn.net/images/cover/34387ff89908f5e906e090f89f7b81a6/232x232-none-80-0-0.png"),
         ),
@@ -444,7 +439,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             MusicApiService().getFlow(authCookie!, "chill").then((value) {
               widget.songManager.lunchPlaylist(value);
             });
-            debugPrint("New flow item clicked");
           },
           child: _buildFlowItem("Chill", "https://cdn-images.dzcdn.net/images/cover/8480aa295e29d6231bc8509ff772b0e5/232x232-none-80-0-0.png"),
         ),
@@ -510,56 +504,53 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(child: Text('No tracks available'));
                   } else {
-                    return Expanded(
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          final track = snapshot.data![index];
-                          debugPrint('Track: $track');
-                          return GestureDetector(
-                            onTap: () {
-                              widget.songManager.lunchPlaylist(
-                                  List<Map<String, dynamic>>.from(snapshot.data![index]['playlist']));
-                            },
-                            child: Stack(
-                              children: [
-                                Container(
-                                  width: 160,
-                                  margin: const EdgeInsets.only(right: 16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        height: 130,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: Colors.grey[800],
-                                          image: DecorationImage(
-                                            image: NetworkImage(track["cover"] ?? 'https://example.com/default_image.jpg'),
-                                            fit: BoxFit.cover,
-                                          ),
+                    return ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final track = snapshot.data![index];
+                        return GestureDetector(
+                          onTap: () {
+                            widget.songManager.lunchPlaylist(
+                                List<Map<String, dynamic>>.from(snapshot.data![index]['playlist']));
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 160,
+                                margin: const EdgeInsets.only(right: 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 130,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.grey[800],
+                                        image: DecorationImage(
+                                          image: NetworkImage(track["cover"] ?? 'https://example.com/default_image.jpg'),
+                                          fit: BoxFit.cover,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        track["title"] ?? 'Unknown Title',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      track["title"] ?? 'Unknown Title',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
-                                    ],
-                                  ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     );
                   }
                 },
@@ -662,7 +653,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  DateTime.fromMillisecondsSinceEpoch(int.parse(release["date"]) * 1000).toString(),
+                                    DateTime.fromMillisecondsSinceEpoch(int.parse(release["date"])).toLocal().toString().split(' ')[0],
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.white54,

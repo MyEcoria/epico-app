@@ -67,7 +67,6 @@ class SongManager {
       'artist': artist,
       'songId': songId,
     });
-    debugPrint('Added song to queue: $name');
   }
 
   List<Map<String, dynamic>> getQueue() {
@@ -119,7 +118,6 @@ class SongManager {
         element['cover'] != null && element['auteur'] != null && element['song_id'] != null &&
         element['title'] is String && element['song'] is String &&
         element['cover'] is String && element['auteur'] is String && element['song_id'] is String) {
-      debugPrint('Adding song to queue: ${element['title']}');
       addToQueue(
         name: element['title'],
         description: "",

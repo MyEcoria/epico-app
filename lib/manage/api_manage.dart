@@ -34,7 +34,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getLatestTracks(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/latest'),
@@ -42,7 +41,6 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest tracks: $data');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load latest tracks: ${response.statusCode}');
@@ -135,7 +133,6 @@ class MusicApiService {
         headers: {'token': cookie},
       );
       if (response.statusCode == 200) {
-        debugPrint('User info: ${response.body}');
         return json.decode(response.body);
       } else {
         throw Exception('Failed to load user info: ${response.statusCode}');
@@ -146,7 +143,6 @@ class MusicApiService {
   }
 
   Future<Map<String, dynamic>> createSongAuth(String songId, String token) async {
-    debugPrint('Creating song auth for song: $songId');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/auth'),
@@ -164,7 +160,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getFlow(String cookie, String type) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/flow/$type'),
@@ -172,7 +167,6 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest New: ${data.length}');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load latest tracks: ${response.statusCode}');
@@ -183,7 +177,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getNewTracks(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/new'),
@@ -201,7 +194,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getForYouTrack(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/for-you'),
@@ -219,7 +211,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getFromFollow(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/from-follow'),
@@ -227,7 +218,6 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest tracks: $data');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load from follow tracks: ${response.statusCode}');
