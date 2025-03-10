@@ -44,7 +44,7 @@ static void my_application_activate(GApplication* application) {
     gtk_header_bar_pack_start(header_bar, toolbar);
   }
 
-  gtk_window_set_default_size(window, 460, 740);
+  gtk_window_set_default_size(window, 460, 840);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

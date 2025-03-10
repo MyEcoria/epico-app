@@ -101,6 +101,14 @@ flutter:
     - assets/logo.svg
     - assets/vinyle.png
     - assets/undrawable/mail.svg
+    - assets/illustrator/tamil.png
+    - assets/illustrator/international.png
+    - assets/illustrator/pop.png
+    - assets/illustrator/hip-hop.png
+    - assets/illustrator/dance.png
+    - assets/illustrator/country.png
+    - assets/illustrator/indie.png
+    - assets/illustrator/jazz.png
 
 flutter_launcher_icons:
   android: true

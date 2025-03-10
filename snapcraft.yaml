@@ -1,0 +1,19 @@
+name: epico
+base: core22
+version: '1.0'
+summary: A simple music player
+description: |
+  A simple music player
+
+grade: stable
+confinement: strict
+
+apps:
+  epico:
+    command: bin/epico
+    plugs: [x11, unity7, wayland, opengl]
+
+parts:
+  flutter-app:
+    plugin: flutter
+    source: .

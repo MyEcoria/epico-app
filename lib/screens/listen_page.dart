@@ -62,6 +62,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   CacheService cache = CacheService();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
+  int _currentIndex = 1; // Début sur Search
+  final ValueNotifier<bool> _isSearchResults = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isPageSearch = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -125,29 +128,43 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       body: Stack(
         children: [
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 80),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 24),
-                    _buildRecentlyPlayed(),
-                    const SizedBox(height: 24),
-                    _buildFlowSection(),
-                    const SizedBox(height: 24),
-                    _buildMixesForYou(),
-                    const SizedBox(height: 24),
-                    _buildArtistsYouFollow(),
-                    const SizedBox(height: 24),
-                    _buildNewReleases(),
-                    // const SizedBox(height: 24),
-                    // _buildRecommendedPlaylists(),
-                  ],
-                ),
-              ),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _isPageSearch,
+              builder: (context, isPageSearch, child) {
+                return isPageSearch == false 
+                  ? SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeader(),
+                            const SizedBox(height: 24),
+                            _buildRecentlyPlayed(),
+                            const SizedBox(height: 24),
+                            _buildFlowSection(),
+                            const SizedBox(height: 24),
+                            _buildMixesForYou(),
+                            const SizedBox(height: 24),
+                            _buildArtistsYouFollow(),
+                            const SizedBox(height: 24),
+                            _buildNewReleases(),
+                            // const SizedBox(height: 24),
+                            // _buildRecommendedPlaylists(),
+                          ],
+                        ),
+                      ),
+                    ) 
+                  : _currentIndex == 1 
+                    ? ValueListenableBuilder<bool>(
+                        valueListenable: _isSearchResults,
+                        builder: (context, isSearchResults, child) {
+                          return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
+                        },
+                      )
+                    : const Center(child: Text("Home or Library Screen"));
+              },
             ),
           ),
           Positioned(
@@ -840,30 +857,360 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       ],
     );
   }
-
+  
   Widget _buildBottomNavigation() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: "Home",
+    return Container(
+      color: Colors.black,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem(Icons.home_filled, "Home", 0),
+            _buildNavItem(Icons.search, "Search", 1),
+            _buildNavItem(Icons.library_books_outlined, "Your Library", 2),
+          ],
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: "Search",
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final bool isSelected = (index == 0 && _isPageSearch.value == false) || (index == 1 && _isPageSearch.value == true);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (index == 1) {
+            _isPageSearch.value = true;
+          } else if (index == 0) {
+            _isPageSearch.value = false;
+          }
+        });
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.white70,
+            size: 24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchScreen() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isSearchResults.value = true;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.search, color: Colors.grey),
+                    SizedBox(width: 12),
+                    Text(
+                      "Search songs, artist, album or playlist",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Icon(Icons.trending_up, size: 18, color: Colors.amber),
+                SizedBox(width: 8),
+                Text(
+                  "Trending artists",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          SizedBox(
+            height: 130,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                _buildArtistItem("Childish Gambino", "assets/artist1.jpg"),
+                _buildArtistItem("Marvin Gaye", "assets/artist2.jpg"),
+                _buildArtistItem("Kanye West", "assets/artist3.jpg"),
+                _buildArtistItem("Justin Bieber", "assets/artist4.jpg"),
+              ],
+            ),
+          ),
+          
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0),
+            child: Text(
+              "Browse",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1.6,
+              children: [
+                _buildGenreItem("TAMIL", Colors.purple),
+                _buildGenreItem("INTERNATIONAL", Colors.orange),
+                _buildGenreItem("POP", Colors.teal),
+                _buildGenreItem("HIP-HOP", Colors.red),
+                _buildGenreItem("DANCE", Colors.blue),
+                _buildGenreItem("COUNTRY", Colors.amber),
+                _buildGenreItem("INDIE", Colors.indigo),
+                _buildGenreItem("JAZZ", Colors.deepPurple),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResultsScreen() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isSearchResults.value = false;
+                  });
+                },
+                child: const Icon(Icons.arrow_back, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                      hintText: "Search songs, artist, album or playlist",
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.library_music),
-          label: "Your Library",
+        
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Recent searches",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            children: [
+              _buildRecentSearchItem(
+                "You (feat. Travis Scott)",
+                "Song • Don Toliver",
+                "assets/song1.jpg"
+              ),
+              _buildRecentSearchItem(
+                "John Wick: Chapter 4 (Original Soundtrack)",
+                "Album • Tyler Bates, Joel J. Richard",
+                "assets/album1.jpg"
+              ),
+              _buildRecentSearchItem(
+                "Maroon 5",
+                "Artist",
+                "assets/artist5.jpg"
+              ),
+              _buildRecentSearchItem(
+                "Phonk Madness",
+                "Playlist",
+                "assets/playlist1.jpg"
+              ),
+            ],
+          ),
+        ),
+        
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {},
+              child: const Text(
+                "Clear history",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          ),
         ),
       ],
-      currentIndex: 0,
+    );
+  }
+
+  Widget _buildArtistItem(String name, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.grey.shade700,
+            backgroundImage: AssetImage(imageUrl),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 80,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenreItem(String name, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        image: DecorationImage(
+          image: AssetImage("assets/illustrator/${name.toLowerCase()}.png"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+      ),
     );
   }
 }
