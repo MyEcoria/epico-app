@@ -31,7 +31,7 @@ class AudioPlayerWidget extends StatefulWidget {
   final VoidCallback onPrevious;
 
   const AudioPlayerWidget({
-    Key? key,
+    super.key,
     required this.songManager,
     required this.currentSongTitle,
     required this.currentArtist,
@@ -47,13 +47,13 @@ class AudioPlayerWidget extends StatefulWidget {
     required this.nextSongArtist,
     required this.onNext,
     required this.onPrevious,
-  }) : super(key: key);
+  });
 
   @override
-  _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
+  AudioPlayerWidgetState createState() => AudioPlayerWidgetState();
 }
 
-class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
+class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   Duration _position = Duration.zero;
   double _dragValue = 0.0;
   bool _isDragging = false;
@@ -65,12 +65,13 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
     authCookie = value;
-    // Initialize _isLiked after loading the cookie
-    final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
-    setState(() {
-      authCookie = value;
-      _isLikedNotifier.value = initialLike;
-    });
+    if (authCookie != null && mounted) {
+      // Initialize _isLiked after loading the cookie
+      final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
+      setState(() {
+        _isLikedNotifier.value = initialLike;
+      });
+    }
   }
 
   @override
@@ -79,6 +80,25 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     _loadCookie();
     _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
+    _setupSongChangeListener();
+  }
+
+  void _setupSongChangeListener() {
+    widget.songManager.songStateStream.listen((_) {
+      // Reset isLiked to false when song changes
+      _isLikedNotifier.value = false;
+      // Then check with API if the new song is liked
+      if (authCookie != null) {
+        MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!)
+            .then((liked) {
+          if (mounted) {
+            setState(() {
+              _isLikedNotifier.value = liked;
+            });
+          }
+        });
+      }
+    });
   }
 
   void _setupPositionListener() {
@@ -241,15 +261,19 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                     icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.devices, color: Colors.white, size: 16),
-                    label: const Text(
-                      "Connect to a device",
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                  // Missing element here - maybe a title or another action button
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((0.3 * 255).toInt()),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                    onPressed: () {
-                      // Implement connection functionality
-                    },
+                    // Missing child here
                   ),
                 ],
               ),
@@ -342,65 +366,64 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               ),
               const SizedBox(height: 16),
               Row(
-                children: [
-                  StreamBuilder<Duration>(
-                    stream: widget.songManager.positionStream,
-                    builder: (context, snapshot) {
-                      _position = snapshot.data ?? Duration.zero;
-                      return Text(
-                        _formatDuration(_position),
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: StreamBuilder<Duration>(
-                      stream: widget.songManager.positionStream,
-                      builder: (context, snapshot) {
-                        _position = snapshot.data ?? Duration.zero;
-                        return SliderTheme(
-                          data: SliderThemeData(
-                            trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                            activeTrackColor: Colors.white,
-                            inactiveTrackColor: Colors.grey[800],
-                            thumbColor: Colors.white,
-                            overlayColor: Colors.white.withOpacity(0.2),
-                          ),
-                          child: Slider(
-                            value: _isDragging
-                                ? _dragValue
-                                : (widget.duration.inMilliseconds > 0
-                                    ? _position.inMilliseconds / widget.duration.inMilliseconds
-                                    : 0.0),
-                            onChanged: (value) {
-                              setState(() {
-                                _isDragging = true;
-                                _dragValue = value;
-                              });
-                            },
-                            onChangeEnd: (value) {
-                              setState(() {
-                                _isDragging = false;
-                                final newPosition = Duration(
-                                  milliseconds: (value * widget.duration.inMilliseconds).round(),
-                                );
-                                _audioPlayer.seek(newPosition);
-                                _position = newPosition;
-                              });
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Text(
-                    _formatDuration(widget.duration),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
+  children: [
+    StreamBuilder<Duration>(
+      stream: widget.songManager.positionStream,
+      builder: (context, snapshot) {
+        return Text(
+          _formatDuration(_position),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        );
+      },
+    ),
+    Expanded(
+      child: StreamBuilder<Duration>(
+        stream: widget.songManager.positionStream,
+        builder: (context, snapshot) {
+          _position = snapshot.data ?? Duration.zero;
+          return SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 2,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.grey[800],
+              thumbColor: Colors.white,
+              overlayColor: Colors.white.withOpacity(0.2),
+            ),
+            child: Slider(
+              value: _isDragging
+                  ? _dragValue
+                  : (widget.duration.inMilliseconds > 0
+                      ? _position.inMilliseconds / widget.duration.inMilliseconds
+                      : 0.0),
+              onChanged: (value) {
+                setState(() {
+                  _isDragging = true;
+                  _dragValue = value;
+                });
+              },
+              onChangeEnd: (value) {
+                setState(() {
+                  _isDragging = false;
+                  final newPosition = Duration(
+                    milliseconds: (value * widget.duration.inMilliseconds).round(),
+                  );
+                  _audioPlayer.seek(newPosition);
+                  _position = newPosition;
+                });
+              },
+            ),
+          );
+        },
+      ),
+    ),
+    Text(
+      _formatDuration(widget.duration),
+      style: const TextStyle(color: Colors.white70, fontSize: 12),
+    ),
+  ],
+),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
