@@ -302,4 +302,37 @@ class MusicApiService {
       throw Exception('Error create auth user: $e');
     }
   }
+
+  Future<String> countLiked(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/count-liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      debugPrint("response: ${response.body}");
+      if (response.statusCode == 200) {
+        return json.decode(response.body)["count"].toString();
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<String> countFollow(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/count-follow'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)["count"].toString();
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
 }

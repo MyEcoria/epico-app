@@ -17,6 +17,7 @@ import '../manage/api_manage.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:async/async.dart';
 import '../manage/cache_manage.dart';
+import 'library_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -63,7 +64,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   CacheService cache = CacheService();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
-  int _currentIndex = 1; // Début sur Search
+  int _currentIndex = 0;
   final ValueNotifier<bool> _isSearchResults = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isPageSearch = ValueNotifier<bool>(false);
 
@@ -87,22 +88,14 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   String extractFirstNameFromEmail(String email) {
-    // Vérifier si l'email est au bon format
     if (!email.contains('@epitech.eu')) {
       throw ArgumentError('L\'email doit être au format prenom.nom@epitech.eu');
     }
-
-    // Diviser l'email en deux parties : avant et après le '@'
     List<String> parts = email.split('@');
     String localPart = parts[0];
-
-    // Diviser la partie locale en deux parties : prénom et nom
     List<String> nameParts = localPart.split('.');
     String firstName = nameParts[0];
-
-    // Mettre la première lettre du prénom en majuscule
     firstName = firstName[0].toUpperCase() + firstName.substring(1);
-
     return firstName;
   }
 
@@ -132,7 +125,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             child: ValueListenableBuilder<bool>(
               valueListenable: _isPageSearch,
               builder: (context, isPageSearch, child) {
-                return isPageSearch == false 
+                return _currentIndex == 0 
                   ? SingleChildScrollView(
                       padding: const EdgeInsets.only(bottom: 80),
                       child: Padding(
@@ -151,8 +144,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             _buildArtistsYouFollow(),
                             const SizedBox(height: 24),
                             _buildNewReleases(),
-                            // const SizedBox(height: 24),
-                            // _buildRecommendedPlaylists(),
                           ],
                         ),
                       ),
@@ -164,7 +155,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
                         },
                       )
-                    : const Center(child: Text("Home or Library Screen"));
+                    : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
               },
             ),
           ),
@@ -876,7 +867,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           children: [
             _buildNavItem(Icons.home_filled, "Home", 0),
             _buildNavItem(Icons.search, "Search", 1),
-            _buildNavItem(Icons.library_books_outlined, "Your Library", 2),
+            _buildNavItem(Icons.library_music, "Your Library", 2),
           ],
         ),
       ),
@@ -884,15 +875,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
-    final bool isSelected = (index == 0 && _isPageSearch.value == false) || (index == 1 && _isPageSearch.value == true);
+    final bool isSelected = _currentIndex == index;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          if (index == 1) {
-            _isPageSearch.value = true;
-          } else if (index == 0) {
-            _isPageSearch.value = false;
+          _currentIndex = index;
+          // Only use _isPageSearch for toggling between home and search
+          if (index <= 1) {
+            _isPageSearch.value = (index == 1);
           }
         });
       },
