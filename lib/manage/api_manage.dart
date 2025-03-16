@@ -19,7 +19,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> getMe() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/me'));
+      final response = await http.get(Uri.parse('$baseUrl/user/info'));
       if (response.statusCode == 200) {
         dynamic data = json.decode(response.body);
         await _secureStorage.write(key: 'name', value: data['name']);
@@ -224,6 +224,82 @@ class MusicApiService {
       }
     } catch (e) {
       throw Exception('Error fetching from follow tracks: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getSearch(String cookie, String name) async {
+    debugPrint("hello: $name");
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/search'),
+        headers: {'Content-Type': 'application/json', 'token': cookie},
+        body: json.encode({'name': name}),
+        );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load from follow tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching from follow tracks: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createLike(String songId, String token) async {
+    debugPrint("hello: $songId/$token");
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+        body: json.encode({'song_id': songId}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<bool> isLike(String songId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/is-liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+        body: json.encode({'song_id': songId}),
+      );
+      if (response.statusCode == 200) {
+        final rep = json.decode(response.body);
+        debugPrint("rep: $rep");
+        if (rep["liked"] == "true") {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> yourArtist(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/your-artist'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
     }
   }
 }

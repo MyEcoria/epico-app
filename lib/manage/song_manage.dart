@@ -153,6 +153,7 @@ class SongManager {
     required String songId,
     bool instant = true,
   }) async {
+    debugPrint('Toggling song: $name/$description/$songUrl/$pictureUrl/$artist/$songId');
     try {
       if (_currentSongUrl == songUrl) {
         if (_isPlaying) {

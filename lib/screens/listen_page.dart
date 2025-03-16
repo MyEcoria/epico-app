@@ -59,6 +59,7 @@ class MusicAppHomePage extends StatefulWidget {
 }
 
 class _MusicAppHomePageState extends State<MusicAppHomePage> {
+  List<Map<String, dynamic>> _searchResults = [];
   CacheService cache = CacheService();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
@@ -171,35 +172,41 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: AudioPlayerWidget(
-              songManager: widget.songManager,
-              currentSongTitle: songState['name'] ?? "Blinding Lights",
-              currentArtist: songState['artist'] ?? "MyEcoria",
-              albumArtUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
-              duration: const Duration(minutes: 3, seconds: 45),
-              onPlayPause: () => _playPause(
-                songState['songUrl'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
-                name: songState['name'] ?? "Blinding Lights",
-                description: songState['description'] ?? "",
-                pictureUrl: songState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
-                songId: songState['song_id'] ?? "",
-              ),
-              lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
-              isFavorite: false,
-              onToggleFavorite: () {
-                // Implement favorite toggle functionality
-              },
-              onShare: () {
-                // Implement share functionality
-              },
-              isPlaying: isPlaying,
-              nextSongTitle: "Save Your Tears",
-              nextSongArtist: "The Weeknd",
-              onNext: () {
-                // Implement next song functionality
-              },
-              onPrevious: () {
-                // Implement previous song functionality
+            child: StreamBuilder<Map<String, dynamic>>(
+              stream: widget.songManager.songStateStream,
+              builder: (context, snapshot) {
+                final currentSongState = snapshot.data ?? {};
+                return AudioPlayerWidget(
+                  songManager: widget.songManager,
+                  currentSongTitle: currentSongState['name'] ?? "Blinding Lights",
+                  currentArtist: currentSongState['artist'] ?? "MyEcoria",
+                  albumArtUrl: currentSongState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+                  duration: const Duration(minutes: 3, seconds: 45),
+                  onPlayPause: () => _playPause(
+                    currentSongState['songUrl'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+                    name: currentSongState['name'] ?? "Blinding Lights",
+                    description: currentSongState['description'] ?? "",
+                    pictureUrl: currentSongState['pictureUrl'] ?? "https://example.com/album_cover.jpg",
+                    songId: currentSongState['song_id'] ?? "",
+                  ),
+                  lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
+                  isFavorite: false,
+                  onToggleFavorite: () {
+                    MusicApiService().createLike(currentSongState['songId'] ?? "", authCookie!);
+                  },
+                  onShare: () {
+                    // Implement share functionality
+                  },
+                  isPlaying: isPlaying,
+                  nextSongTitle: "Save Your Tears",
+                  nextSongArtist: "The Weeknd",
+                  onNext: () {
+                    // Implement next song functionality
+                  },
+                  onPrevious: () {
+                    // Implement previous song functionality
+                  },
+                );
               },
             ),
           ),
@@ -314,6 +321,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final track = snapshot.data![index];
+                          debugPrint('track: $track');
                           return _buildAlbumCard(
                             track['title'] ?? 'Unknown Title',
                             track['cover'] ?? 'assets/caca.jpg',
@@ -951,7 +959,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 Icon(Icons.trending_up, size: 18, color: Colors.amber),
                 SizedBox(width: 8),
                 Text(
-                  "Trending artists",
+                  "Your artists",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -964,15 +972,30 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           
           SizedBox(
             height: 130,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                _buildArtistItem("Childish Gambino", "assets/artist1.jpg"),
-                _buildArtistItem("Marvin Gaye", "assets/artist2.jpg"),
-                _buildArtistItem("Kanye West", "assets/artist3.jpg"),
-                _buildArtistItem("Justin Bieber", "assets/artist4.jpg"),
-              ],
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: MusicApiService().yourArtist(authCookie!),
+              builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!['artist'] == null) {
+                return const Center(child: Text('No artists available'));
+              }
+              List<dynamic> artists = snapshot.data!['artist'];
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: artists.length,
+                itemBuilder: (context, index) {
+                final artist = artists[index];
+                return _buildArtistItem(
+                  artist['auteur'] ?? 'Unknown',
+                  artist['cover'] ?? 'assets/default_artist.jpg',
+                );
+                },
+              );
+              },
             ),
           ),
           
@@ -1040,13 +1063,27 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: const TextField(
-                    decoration: InputDecoration(
+                  child: TextField(
+                    decoration: const InputDecoration(
                       hintText: "Search songs, artist, album or playlist",
                       hintStyle: TextStyle(color: Colors.grey),
                       border: InputBorder.none,
                     ),
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
+                    onChanged: (query) async {
+                      if (query.isNotEmpty) {
+                        debugPrint(query);
+                        var results = await MusicApiService().getSearch(authCookie!, query);
+                        debugPrint(results.toString());
+                        setState(() {
+                          _searchResults = results;
+                        });
+                      } else {
+                        setState(() {
+                          _searchResults = [];
+                        });
+                      }
+                    },
                   ),
                 ),
               ),
@@ -1059,7 +1096,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              "Recent searches",
+              "Search results",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1070,30 +1107,20 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         ),
         
         Expanded(
-          child: ListView(
+          child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            children: [
-              _buildRecentSearchItem(
-                "You (feat. Travis Scott)",
-                "Song • Don Toliver",
-                "assets/song1.jpg"
-              ),
-              _buildRecentSearchItem(
-                "John Wick: Chapter 4 (Original Soundtrack)",
-                "Album • Tyler Bates, Joel J. Richard",
-                "assets/album1.jpg"
-              ),
-              _buildRecentSearchItem(
-                "Maroon 5",
-                "Artist",
-                "assets/artist5.jpg"
-              ),
-              _buildRecentSearchItem(
-                "Phonk Madness",
-                "Playlist",
-                "assets/playlist1.jpg"
-              ),
-            ],
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final result = _searchResults[index];
+              return _buildRecentSearchItem(
+                result['title'],
+                "Song • ${result['auteur']}",
+                result['cover'], 
+                result['song'],
+                result['song_id'],
+                result['auteur'],
+              );
+            },
           ),
         ),
         
@@ -1102,7 +1129,11 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           child: Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+                  _searchResults = [];
+                });
+              },
               child: const Text(
                 "Clear history",
                 style: TextStyle(color: Colors.grey),
@@ -1122,7 +1153,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           CircleAvatar(
             radius: 40,
             backgroundColor: Colors.grey.shade700,
-            backgroundImage: AssetImage(imageUrl),
+            backgroundImage: NetworkImage(imageUrl),
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -1168,48 +1199,56 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+  Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl, String songUrl, String songId, String artist) {
+    return GestureDetector(
+      onTap: () {
+        _playPause(
+          songUrl,
+          name: title,
+          description: subtitle,
+          pictureUrl: imageUrl,
+          songId: songId,
+          artist: artist,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade400,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade400,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, size: 20, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

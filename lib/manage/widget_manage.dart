@@ -7,9 +7,11 @@
 ** progress bar, and song information.
 */
 
+import 'package:epico/manage/api_manage.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'song_manage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -56,10 +58,25 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   double _dragValue = 0.0;
   bool _isDragging = false;
   late AudioPlayer _audioPlayer;
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? authCookie;
+  final ValueNotifier<bool> _isLikedNotifier = ValueNotifier<bool>(false);
+
+  Future<void> _loadCookie() async {
+    String? value = await _secureStorage.read(key: 'auth');
+    authCookie = value;
+    // Initialize _isLiked after loading the cookie
+    final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
+    setState(() {
+      authCookie = value;
+      _isLikedNotifier.value = initialLike;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadCookie();
     _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
   }
@@ -299,12 +316,23 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                       );
                     },
                     ),
-                  IconButton(
-                    icon: Icon(
-                      widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: widget.isFavorite ? Colors.redAccent : Colors.white,
-                    ),
-                    onPressed: widget.onToggleFavorite,
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _isLikedNotifier,
+                    builder: (context, isLiked, child) {
+                      return IconButton(
+                        icon: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? Colors.redAccent : Colors.white,
+                        ),
+                        onPressed: () async {
+                          widget.onToggleFavorite();
+                          // Toggle the notifier value which will trigger a rebuild
+                          bool liked = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
+                          _isLikedNotifier.value = liked;
+                          debugPrint("isLiked2: ${_isLikedNotifier.value}");
+                        },
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.share, color: Colors.white),
