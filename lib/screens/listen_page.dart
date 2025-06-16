@@ -9,6 +9,8 @@
 ** It also handles the playback of songs using the SongManager.
 */
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import '../manage/widget_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -61,6 +63,7 @@ class MusicAppHomePage extends StatefulWidget {
 
 class _MusicAppHomePageState extends State<MusicAppHomePage> {
   List<Map<String, dynamic>> _searchResults = [];
+  String _lastQuery = "";
   CacheService cache = CacheService();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
@@ -1062,6 +1065,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     ),
                     style: const TextStyle(color: Colors.white),
                     onChanged: (query) async {
+                      _lastQuery = query;
                       if (query.isNotEmpty) {
                         debugPrint(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
@@ -1098,18 +1102,32 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         ),
         
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              final result = _searchResults[index];
-              return _buildRecentSearchItem(
-                result['title'],
-                "Song • ${result['auteur']}",
-                result['cover'], 
-                result['song'],
-                result['song_id'],
-                result['auteur'],
+          child: StatefulBuilder(
+            builder: (context, setStateSB) {
+              Future<void>.delayed(const Duration(seconds: 2), () async {
+                if (_searchResults.any((e) => e['downloaded'] == false)) {
+                  if (mounted) setStateSB(() {});
+                }
+                var results = await MusicApiService().getSearch(authCookie!, _lastQuery);
+                setState(() {
+                  _searchResults = results;
+                });
+              });
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                itemCount: _searchResults.length,
+                itemBuilder: (context, index) {
+                  final result = _searchResults[index];
+                  return _buildRecentSearchItem(
+                    result['title'],
+                    "Song • ${result['auteur']}",
+                    result['cover'],
+                    result['song'],
+                    result['song_id'],
+                    result['auteur'],
+                    result['downloaded'] ?? false,
+                  );
+                },
               );
             },
           ),
@@ -1190,57 +1208,68 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl, String songUrl, String songId, String artist) {
-    return GestureDetector(
-      onTap: () {
-        _playPause(
-          songUrl,
-          name: title,
-          description: subtitle,
-          pictureUrl: imageUrl,
-          songId: songId,
-          artist: artist,
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
+  Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl, String songUrl, String songId, String artist, bool downloaded) {
+  return GestureDetector(
+    onTap: downloaded
+        ? () {
+            _playPause(
+              songUrl,
+              name: title,
+              description: subtitle,
+              pictureUrl: imageUrl,
+              songId: songId,
+              artist: artist,
+            );
+          }
+        : null,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              ),
+              color: downloaded ? null : Colors.grey.shade800,
+            ),
+            child: !downloaded
+                ? const Center(
+                    child: Icon(Icons.download, color: Colors.white54, size: 28),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: downloaded ? Colors.white : Colors.white54,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: downloaded ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
