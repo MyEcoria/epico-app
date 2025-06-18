@@ -22,10 +22,6 @@ import '../manage/cache_manage.dart';
 import 'library_page.dart';
 import 'package:flutter/cupertino.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
 class GenreTile extends StatelessWidget {
   final String name;
   final Color overlayColor;
@@ -73,32 +69,6 @@ class GenreTile extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Colors.black,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white70,
-        ),
-      ),
-      home: MusicAppHomePage(songManager: SongManager()),
-    );
-  }
-}
 
 class MusicAppHomePage extends StatefulWidget {
   final SongManager songManager;

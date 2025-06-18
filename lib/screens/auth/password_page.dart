@@ -2,22 +2,6 @@ import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
 import '../../manage/api_manage.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: PasswordScreen(email: 'your.name@epitech.eu'),
-    );
-  }
-}
-
 class PasswordScreen extends StatefulWidget {
   final String email;
 
