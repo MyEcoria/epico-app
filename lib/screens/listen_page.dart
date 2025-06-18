@@ -1183,23 +1183,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           ),
         ),
         
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  _searchResults = [];
-                });
-              },
-              child: const Text(
-                "Clear history",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

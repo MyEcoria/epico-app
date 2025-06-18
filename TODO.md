@@ -6,3 +6,4 @@
 - Replace default icons with Deezer-like icons
 - Polish layout spacing and transitions
 - Change the Search page layout and how items are displayed
+- Remove "Clear history" from the search results screen
