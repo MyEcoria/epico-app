@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
+import '../../theme.dart';
 
 class ConfirmationPage extends StatelessWidget {
   @override
@@ -55,11 +56,12 @@ class ConfirmationPage extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: kAccentColor,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: Text(
                     'Login',

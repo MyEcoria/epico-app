@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../theme.dart';
 
 class LibraryPage extends StatefulWidget {
   final SongManager songManager;
@@ -211,7 +212,7 @@ GridView.builder(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[900],
+          color: Colors.grey[850],
           borderRadius: BorderRadius.circular(8),
         ),
         padding: const EdgeInsets.all(16),
@@ -222,7 +223,7 @@ GridView.builder(
           children: [
             Icon(
               icon,
-              color: Colors.white,
+              color: kAccentColor,
               size: 28,
             ),
             Text(

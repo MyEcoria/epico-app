@@ -21,6 +21,7 @@ import 'package:async/async.dart';
 import '../manage/cache_manage.dart';
 import 'library_page.dart';
 import 'package:flutter/cupertino.dart';
+import '../theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -910,7 +911,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   
   Widget _buildBottomNavigation() {
     return Container(
-      color: Colors.black,
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
@@ -943,14 +947,14 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         children: [
           Icon(
             icon,
-            color: isSelected ? Colors.white : Colors.white70,
+            color: isSelected ? kAccentColor : Colors.white70,
             size: 24,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white70,
+              color: isSelected ? kAccentColor : Colors.white70,
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
@@ -982,7 +986,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.search, color: Colors.grey),
+                    Icon(Icons.search, color: kAccentColor),
                     SizedBox(width: 12),
                     Text(
                       "Search songs, artist, album or playlist",
@@ -1161,20 +1165,18 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   _searchResults = results;
                 });
               });
-              return ListView.builder(
+              return GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.75,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   final result = _searchResults[index];
-                  return _buildRecentSearchItem(
-                    result['title'],
-                    "Song • ${result['auteur']}",
-                    result['cover'],
-                    result['song'],
-                    result['song_id'],
-                    result['auteur'],
-                    result['downloaded'] ?? false,
-                  );
+                  return _buildResultCard(result);
                 },
               );
             },
@@ -1296,4 +1298,57 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     ),
   );
 }
+
+  Widget _buildResultCard(Map<String, dynamic> result) {
+    final bool downloaded = result['downloaded'] ?? false;
+    return GestureDetector(
+      onTap: downloaded
+          ? () {
+              _playPause(
+                result['song'],
+                name: result['title'],
+                description: "Song • ${result['auteur']}",
+                pictureUrl: result['cover'],
+                songId: result['song_id'],
+                artist: result['auteur'],
+              );
+            }
+          : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  image: NetworkImage(result['cover']),
+                  fit: BoxFit.cover,
+                ),
+                color: downloaded ? null : Colors.grey.shade800,
+              ),
+              child: !downloaded
+                  ? const Center(
+                      child: Icon(Icons.download, color: Colors.white54, size: 30),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            result['title'],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+          ),
+          Text(
+            "Song • ${result['auteur']}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
 import '../../manage/api_manage.dart';
+import '../../theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -248,8 +249,8 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     }
                   : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  disabledBackgroundColor: Colors.blue.withOpacity(0.5),
+                  backgroundColor: kAccentColor,
+                  disabledBackgroundColor: kAccentColor.withOpacity(0.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
