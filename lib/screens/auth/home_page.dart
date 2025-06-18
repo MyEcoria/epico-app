@@ -16,6 +16,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:epico/manage/song_manage.dart';
 import 'package:epico/manage/api_manage.dart';
 import 'package:epico/manage/cache_manage.dart';
+import 'package:epico/manage/navigation_helper.dart';
 import '../../theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -101,10 +102,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               // Buttons
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EmailScreen()),
-                  );
+                  NavigationHelper.pushFade(context, EmailScreen());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kAccentColor,
@@ -119,10 +117,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
+                  NavigationHelper.pushFade(context, const LoginPage());
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: kAccentColor,

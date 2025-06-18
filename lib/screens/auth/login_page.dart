@@ -14,6 +14,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
 import '../../manage/api_manage.dart';
 import '../../theme.dart';
+import '../../manage/navigation_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -174,12 +175,7 @@ class _LoginPageState extends State<LoginPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-            );
+            NavigationHelper.pushFade(context, HomePage());
           },
         ),
       ),
@@ -302,12 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                       final response = await apiService.loginUser(_emailController.text, _passwordController.text);
                       if (response['status'] == 'ok') {
                         _storeCookie(response['cookie']);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (context) => HomePage(),
-                          ),
-                      );
+                        NavigationHelper.pushFade(context, HomePage());
                       } else {
                       _showErrorMessage('Failed to create user: ${response['message']}');
                       }

@@ -177,7 +177,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             child: ValueListenableBuilder<bool>(
               valueListenable: _isPageSearch,
               builder: (context, isPageSearch, child) {
-                return _currentIndex == 0 
+                Widget page = _currentIndex == 0
                   ? SingleChildScrollView(
                       padding: const EdgeInsets.only(bottom: 80),
                       child: Padding(
@@ -199,8 +199,8 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           ],
                         ),
                       ),
-                    ) 
-                  : _currentIndex == 1 
+                    )
+                  : _currentIndex == 1
                     ? ValueListenableBuilder<bool>(
                         valueListenable: _isSearchResults,
                         builder: (context, isSearchResults, child) {
@@ -208,6 +208,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         },
                       )
                     : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
+                );
               },
             ),
           ),

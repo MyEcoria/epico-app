@@ -14,6 +14,7 @@ import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
 import 'dart:ui';
+import 'package:palette_generator/palette_generator.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -66,6 +67,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   final ValueNotifier<bool> _isLikedNotifier = ValueNotifier<bool>(false);
   late AnimationController _pulseController;
   bool _isExpanded = false;
+  Color _dominantColor = kAccentColor;
 
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
@@ -86,6 +88,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
     _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
     _setupSongChangeListener();
+    _updateDominantColor();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -107,7 +110,22 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
           }
         });
       }
+      _updateDominantColor();
     });
+  }
+
+  Future<void> _updateDominantColor() async {
+    final pictureUrl = widget.songManager.getSongState()['pictureUrl'];
+    if (pictureUrl != null && pictureUrl.isNotEmpty) {
+      final palette = await PaletteGenerator.fromImageProvider(
+        NetworkImage(pictureUrl),
+      );
+      if (mounted) {
+        setState(() {
+          _dominantColor = palette.dominantColor?.color ?? kAccentColor;
+        });
+      }
+    }
   }
 
   void _setupPositionListener() {
@@ -195,11 +213,11 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                       color: Colors.black.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
-                      BoxShadow(
-                        color: kAccentColor.withOpacity(0.3),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
+                        BoxShadow(
+                          color: _dominantColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
                       ],
                     ),
                     child: ClipRRect(
@@ -221,7 +239,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: kAccentColor.withOpacity(0.4 * (1 - _pulseController.value)),
+                                      color: _dominantColor.withOpacity(0.4 * (1 - _pulseController.value)),
                                       blurRadius: 6 + 4 * _pulseController.value,
                                       spreadRadius: 1 + _pulseController.value,
                                     ),
@@ -326,12 +344,13 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                   final songState = snapshot.data ?? widget.songManager.getSongState(); 
                   return Hero( 
                     tag: 'albumArtHero', 
-                    child: Container( 
-                      width: MediaQuery.of(context).size.width * 0.8, 
-                      height: MediaQuery.of(context).size.width * 0.8, 
-                      decoration: BoxDecoration( 
-                        borderRadius: BorderRadius.circular(8), 
-                        boxShadow: [ 
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.width * 0.8,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: _dominantColor, width: 4),
+                        boxShadow: [
                           BoxShadow( 
                             color: Colors.black.withOpacity(0.3), 
                             blurRadius: 20, 

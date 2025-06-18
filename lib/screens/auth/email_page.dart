@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'password_page.dart';
 import '../../theme.dart';
+import '../../manage/navigation_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -127,11 +128,9 @@ class _EmailScreenState extends State<EmailScreen> {
               child: ElevatedButton(
                 onPressed: _isValidEmail
                     ? () {
-                        Navigator.push(
+                        NavigationHelper.pushFade(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => PasswordScreen(email: _emailController.text),
-                          ),
+                          PasswordScreen(email: _emailController.text),
                         );
                       }
                     : null,

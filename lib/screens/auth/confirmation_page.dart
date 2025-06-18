@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
 import '../../theme.dart';
+import '../../manage/navigation_helper.dart';
 
 class ConfirmationPage extends StatelessWidget {
   @override
@@ -48,12 +49,7 @@ class ConfirmationPage extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(),
-                      ),
-                    );
+                    NavigationHelper.pushFade(context, const LoginPage());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kAccentColor,
