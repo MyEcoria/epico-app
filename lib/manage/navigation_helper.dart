@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 class NavigationHelper {
   static Future<T?> pushFade<T>(BuildContext context, Widget page) {
-    return Navigator.of(context).push(_fadeRoute(page));
+    return Navigator.of(context).push<T>(_fadeRoute<T>(page));
   }
 
-  static Route _fadeRoute(Widget page) {
-    return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 300),
+  static PageRouteBuilder<T> _fadeRoute<T>(Widget page) {
+    return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);

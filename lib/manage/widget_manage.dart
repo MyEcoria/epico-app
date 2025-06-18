@@ -15,6 +15,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
 import 'dart:ui';
 import 'package:palette_generator/palette_generator.dart';
+import 'dart:math';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -352,25 +353,56 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                   final songState = snapshot.data ?? widget.songManager.getSongState(); 
                   return Hero( 
                     tag: 'albumArtHero', 
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      height: MediaQuery.of(context).size.width * 0.8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _dominantColor, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _dominantColor.withOpacity(0.5),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                        image: DecorationImage( 
-                          image: NetworkImage(songState['pictureUrl'] ?? ''), 
-                          fit: BoxFit.cover, 
+                    child: AnimatedBuilder(
+                      animation: _pulseController,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: MediaQuery.of(context).size.width * 0.8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: _dominantColor, width: 4),
+                          image: DecorationImage( 
+                            image: NetworkImage(songState['pictureUrl'] ?? ''), 
+                            fit: BoxFit.cover, 
+                          ), 
                         ), 
-                      ), 
-                    ), 
+                      ),
+                      builder: (context, child) {
+                        final waveOffset = _pulseController.value * 2 * pi;
+                        return Container(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          height: MediaQuery.of(context).size.width * 0.8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: _dominantColor, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _dominantColor.withOpacity(0.3 + 0.1 * (0.5 + 0.5 * sin(waveOffset))),
+                                blurRadius: 25 + 8 * (0.5 + 0.5 * sin(waveOffset + 0.5)),
+                                spreadRadius: 6 + 3 * (0.5 + 0.5 * sin(waveOffset + 1)),
+                                offset: Offset(2 * sin(waveOffset + 0.3), 12 + 5 * sin(waveOffset + 0.7)),
+                              ),
+                              BoxShadow(
+                                color: _dominantColor.withOpacity(0.2 + 0.08 * (0.5 + 0.5 * sin(waveOffset + 1.5))),
+                                blurRadius: 40 + 12 * (0.5 + 0.5 * sin(waveOffset + 2)),
+                                spreadRadius: 8 + 4 * (0.5 + 0.5 * sin(waveOffset + 2.5)),
+                                offset: Offset(3 * sin(waveOffset + 1.8), 18 + 7 * sin(waveOffset + 3)),
+                              ),
+                              BoxShadow(
+                                color: _dominantColor.withOpacity(0.15 + 0.06 * (0.5 + 0.5 * sin(waveOffset + 3))),
+                                blurRadius: 55 + 15 * (0.5 + 0.5 * sin(waveOffset + 3.5)),
+                                spreadRadius: 10 + 5 * (0.5 + 0.5 * sin(waveOffset + 4)),
+                                offset: Offset(4 * sin(waveOffset + 4.2), 22 + 8 * sin(waveOffset + 4.8)),
+                              ),
+                            ],
+                            image: DecorationImage( 
+                              image: NetworkImage(songState['pictureUrl'] ?? ''), 
+                              fit: BoxFit.cover, 
+                            ), 
+                          ), 
+                        );
+                      },
+                    ),
                   ); 
                 }, 
               ),
