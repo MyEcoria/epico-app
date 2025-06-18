@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
 import '../../manage/api_manage.dart';
+import '../../logger.dart';
 
 class PasswordScreen extends StatefulWidget {
   final String email;
@@ -24,7 +25,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   void initState() {
     super.initState();
     _passwordController.addListener(_validatePassword);
-    print("Email from previous page: ${widget.email}"); // Example usage
+    AppLogger.log("Email from previous page: ${widget.email}"); // Example usage
   }
 
   @override

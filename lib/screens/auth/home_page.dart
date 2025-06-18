@@ -16,6 +16,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:epico/manage/song_manage.dart';
 import 'package:epico/manage/api_manage.dart';
 import 'package:epico/manage/cache_manage.dart';
+import '../../logger.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -49,10 +50,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
         );
       } catch (e) {
-        debugPrint('Error fetching user info: $e');
+        AppLogger.log('Error fetching user info: $e');
       }
     } else {
-      debugPrint('No auth token found');
+      AppLogger.log('No auth token found');
     }
   }
 

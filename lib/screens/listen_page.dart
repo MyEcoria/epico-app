@@ -21,6 +21,7 @@ import 'package:async/async.dart';
 import '../manage/cache_manage.dart';
 import 'library_page.dart';
 import 'package:flutter/cupertino.dart';
+import '../logger.dart';
 
 class GenreTile extends StatelessWidget {
   final String name;
@@ -254,7 +255,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               ),
             );
           } else {
-            print('snapshot.data: ${snapshot.data}');
+            AppLogger.log('snapshot.data: ${snapshot.data}');
             return Text(
               "Hi ${extractFirstNameFromEmail(snapshot.data ?? 'default.name@epitech.eu')},",
               style: const TextStyle(
@@ -333,7 +334,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final track = snapshot.data![index];
-                          debugPrint('track: $track');
+                          AppLogger.log('track: $track');
                           return _buildAlbumCard(
                             track['title'] ?? 'Unknown Title',
                             track['cover'] ?? 'assets/caca.jpg',
@@ -1085,9 +1086,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     onChanged: (query) async {
                       _lastQuery = query;
                       if (query.isNotEmpty) {
-                        debugPrint(query);
+                        AppLogger.log(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
-                        debugPrint(results.toString());
+                        AppLogger.log(results.toString());
                         setState(() {
                           _searchResults = results;
                         });

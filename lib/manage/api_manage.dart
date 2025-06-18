@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../logger.dart';
 
 class MusicApiService {
   static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://192.168.1.53:8000';
@@ -229,7 +230,7 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getSearch(String cookie, String name) async {
-    debugPrint("hello: $name");
+    AppLogger.log("hello: $name");
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/search'),
@@ -248,7 +249,7 @@ class MusicApiService {
   }
 
   Future<Map<String, dynamic>> createLike(String songId, String token) async {
-    debugPrint("hello: $songId/$token");
+    AppLogger.log("hello: $songId/$token");
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/liked'),
@@ -274,7 +275,7 @@ class MusicApiService {
       );
       if (response.statusCode == 200) {
         final rep = json.decode(response.body);
-        debugPrint("rep: $rep");
+        AppLogger.log("rep: $rep");
         if (rep["liked"] == "true") {
           return true;
         } else {
@@ -310,7 +311,7 @@ class MusicApiService {
         Uri.parse('$baseUrl/music/count-liked'),
         headers: {'Content-Type': 'application/json', 'token': token},
       );
-      debugPrint("response: ${response.body}");
+      AppLogger.log("response: ${response.body}");
       if (response.statusCode == 200) {
         return json.decode(response.body)["count"].toString();
       } else {

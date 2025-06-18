@@ -10,6 +10,7 @@
 import 'package:epico/manage/api_manage.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import '../logger.dart';
 import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -353,7 +354,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                           // Toggle the notifier value which will trigger a rebuild
                           bool liked = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
                           _isLikedNotifier.value = liked;
-                          debugPrint("isLiked2: ${_isLikedNotifier.value}");
+                          AppLogger.log('isLiked2: ${_isLikedNotifier.value}');
                         },
                       );
                     },
