@@ -7,3 +7,4 @@
 - Polish layout spacing and transitions
 - Change the Search page layout and how items are displayed
 - Remove "Clear history" from the search results screen
+- Improve mini-player: make it circular, more visible and offset above the navigation bar

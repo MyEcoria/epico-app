@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../theme.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -161,12 +162,15 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   }
                 },
                 child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   height: 60,
                   decoration: BoxDecoration(
                     color: Colors.black87,
+                    borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                        color: kAccentColor.withOpacity(0.3),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
@@ -177,9 +181,9 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                       Container(
                         width: 50,
                         height: 50,
-                        margin: const EdgeInsets.only(left: 8),
+                        margin: const EdgeInsets.only(left: 4),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          shape: BoxShape.circle,
                           image: DecorationImage(
                             image: NetworkImage(widget.songManager.getSongState()['pictureUrl']),
                             fit: BoxFit.cover,
