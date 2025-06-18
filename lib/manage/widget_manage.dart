@@ -54,7 +54,8 @@ class AudioPlayerWidget extends StatefulWidget {
   AudioPlayerWidgetState createState() => AudioPlayerWidgetState();
 }
 
-class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
+class AudioPlayerWidgetState extends State<AudioPlayerWidget>
+    with TickerProviderStateMixin {
   Duration _position = Duration.zero;
   double _dragValue = 0.0;
   bool _isDragging = false;
@@ -62,6 +63,8 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
   final ValueNotifier<bool> _isLikedNotifier = ValueNotifier<bool>(false);
+  late AnimationController _pulseController;
+  bool _isExpanded = false;
 
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
@@ -82,6 +85,10 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
     _setupSongChangeListener();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
   }
 
   void _setupSongChangeListener() {
@@ -112,6 +119,12 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     });
   }
 
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   void _handlePlayPause() {
     final songState = widget.songManager.getSongState();
     widget.songManager.togglePlaySong(name: songState['name'], description: songState['description'], songUrl: songState['songUrl'], pictureUrl: songState['pictureUrl'], artist: songState['artist'], songId: songState['songId']);
@@ -125,6 +138,9 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   }
 
   void _showExpandedPlayer(BuildContext context) {
+    setState(() {
+      _isExpanded = true;
+    });
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -132,7 +148,13 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
       builder: (BuildContext context) {
         return _buildExpandedPlayer(context);
       },
-    );
+    ).whenComplete(() {
+      if (mounted) {
+        setState(() {
+          _isExpanded = false;
+        });
+      }
+    });
   }
 
   @override
@@ -161,12 +183,15 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                     _showExpandedPlayer(context);
                   }
                 },
-                child: Container(
+                child: AnimatedOpacity(
+                  opacity: _isExpanded ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.black87,
+                    color: Colors.black.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
@@ -178,16 +203,33 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        margin: const EdgeInsets.only(left: 4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: NetworkImage(widget.songManager.getSongState()['pictureUrl']),
-                            fit: BoxFit.cover,
-                          ),
+                      Hero(
+                        tag: 'albumArtHero',
+                        child: AnimatedBuilder(
+                          animation: _pulseController,
+                          builder: (context, child) {
+                            return Container(
+                              width: 50,
+                              height: 50,
+                              margin: const EdgeInsets.only(left: 4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: kAccentColor.withOpacity(0.4 * (1 - _pulseController.value)),
+                                    blurRadius: 6 + 4 * _pulseController.value,
+                                    spreadRadius: 1 + _pulseController.value,
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.network(
+                                  widget.songManager.getSongState()['pictureUrl'],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       Expanded(
@@ -282,30 +324,33 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                 ],
               ),
               const SizedBox(height: 40),
-                StreamBuilder<Map<String, String>>(
+                StreamBuilder<Map<String, String>>( 
                 stream: widget.songManager.songStateStream.cast<Map<String, String>>(),
-                builder: (context, snapshot) {
-                  final songState = snapshot.data ?? widget.songManager.getSongState();
-                  return Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.width * 0.8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                    ],
-                    image: DecorationImage(
-                    image: NetworkImage(songState['pictureUrl'] ?? ''),
-                    fit: BoxFit.cover,
-                    ),
-                  ),
-                  );
-                },
-                ),
+                builder: (context, snapshot) { 
+                  final songState = snapshot.data ?? widget.songManager.getSongState(); 
+                  return Hero( 
+                    tag: 'albumArtHero', 
+                    child: Container( 
+                      width: MediaQuery.of(context).size.width * 0.8, 
+                      height: MediaQuery.of(context).size.width * 0.8, 
+                      decoration: BoxDecoration( 
+                        borderRadius: BorderRadius.circular(8), 
+                        boxShadow: [ 
+                          BoxShadow( 
+                            color: Colors.black.withOpacity(0.3), 
+                            blurRadius: 20, 
+                            offset: const Offset(0, 10), 
+                          ), 
+                        ], 
+                        image: DecorationImage( 
+                          image: NetworkImage(songState['pictureUrl'] ?? ''), 
+                          fit: BoxFit.cover, 
+                        ), 
+                      ), 
+                    ), 
+                  ); 
+                }, 
+              ),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
