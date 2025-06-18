@@ -13,6 +13,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
+import 'dart:ui';
 
 class AudioPlayerWidget extends StatefulWidget {
   final SongManager songManager;
@@ -187,90 +188,97 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                   opacity: _isExpanded ? 0.0 : 1.0,
                   duration: const Duration(milliseconds: 200),
                   child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.98),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
+                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
                       BoxShadow(
                         color: kAccentColor.withOpacity(0.3),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Hero(
-                        tag: 'albumArtHero',
-                        child: AnimatedBuilder(
-                          animation: _pulseController,
-                          builder: (context, child) {
-                            return Container(
-                              width: 50,
-                              height: 50,
-                              margin: const EdgeInsets.only(left: 4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: kAccentColor.withOpacity(0.4 * (1 - _pulseController.value)),
-                                    blurRadius: 6 + 4 * _pulseController.value,
-                                    spreadRadius: 1 + _pulseController.value,
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Row(
+                      children: [
+                        Hero(
+                          tag: 'albumArtHero',
+                          child: AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, child) {
+                              return Container(
+                                width: 50,
+                                height: 50,
+                                margin: const EdgeInsets.only(left: 4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: kAccentColor.withOpacity(0.4 * (1 - _pulseController.value)),
+                                      blurRadius: 6 + 4 * _pulseController.value,
+                                      spreadRadius: 1 + _pulseController.value,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.network(
+                                    widget.songManager.getSongState()['pictureUrl'],
+                                    fit: BoxFit.cover,
                                   ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: Image.network(
-                                  widget.songManager.getSongState()['pictureUrl'],
-                                  fit: BoxFit.cover,
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.songManager.getSongState()['name'],
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                widget.songManager.getSongState()['artist'],
-                                style: TextStyle(
-                                  color: Colors.white.withAlpha((0.7 * 255).toInt()),
-                                  fontSize: 12,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 28,
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.songManager.getSongState()['name'],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  widget.songManager.getSongState()['artist'],
+                                  style: TextStyle(
+                                    color: Colors.white.withAlpha((0.7 * 255).toInt()),
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        onPressed: _handlePlayPause,
+                        IconButton(
+                          icon: Icon(
+                            isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          onPressed: _handlePlayPause,
+                        ),
+                      ],
+                    ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               );
@@ -308,19 +316,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                     onPressed: () => Navigator.pop(context),
                   ),
                   // Missing element here - maybe a title or another action button
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha((0.3 * 255).toInt()),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    // Missing child here
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
               const SizedBox(height: 40),
