@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'confirmation_page.dart';
 import '../../manage/api_manage.dart';
 import '../../theme.dart';
+import '../../manage/navigation_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -234,11 +235,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       final apiService = MusicApiService();
                       final response = await apiService.createUser(widget.email, _passwordController.text);
                       if (response['status'] == 'ok') {
-                      Navigator.push(
+                      NavigationHelper.pushFade(
                         context,
-                        MaterialPageRoute(
-                        builder: (context) => ConfirmationPage(),
-                        ),
+                        ConfirmationPage(),
                       );
                       } else {
                       _showErrorMessage('Failed to create user: ${response['message']}');
