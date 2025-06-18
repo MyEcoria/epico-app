@@ -1,0 +1,10 @@
+- Revamp global theme with dark style and accent color #EF5466
+- Enhance HomePage with gradient background, centered logo, and new button styles
+- Unify login and registration screens with consistent accent color
+- Update MusicAppHomePage bottom navigation highlighting
+- Refine Library and Confirmation screens to match theme
+- Replace default icons with Deezer-like icons
+- Polish layout spacing and transitions
+- Change the Search page layout and how items are displayed
+- Remove "Clear history" from the search results screen
+- Improve mini-player: circular with playback glow, more opaque, positioned even closer to the navigation bar, and fades when expanded

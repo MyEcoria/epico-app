@@ -16,6 +16,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:epico/manage/song_manage.dart';
 import 'package:epico/manage/api_manage.dart';
 import 'package:epico/manage/cache_manage.dart';
+import '../../theme.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -67,7 +68,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Padding(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.black, Color(0xFF121212)],
+            ),
+          ),
           padding: const EdgeInsets.all(50.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -99,8 +107,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
+                  backgroundColor: kAccentColor,
+                  foregroundColor: Colors.white,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
@@ -117,7 +125,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   );
                 },
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
+                  foregroundColor: kAccentColor,
                 ),
                 child: Text('Log in'),
               ),

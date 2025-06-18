@@ -13,6 +13,7 @@
 import 'package:flutter/material.dart';
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
+import 'theme.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'manage/song_manage.dart';
 import 'manage/api_manage.dart';
@@ -70,9 +71,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Epico',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: appTheme,
       home: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _isAuthenticated ? MusicAppHomePage(songManager: SongManager()) : HomePage(),
