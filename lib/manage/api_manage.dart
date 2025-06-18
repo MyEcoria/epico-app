@@ -18,10 +18,13 @@ import '../logger.dart';
 class MusicApiService {
   static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://192.168.1.53:8000';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final http.Client client;
+
+  MusicApiService({http.Client? client}) : client = client ?? http.Client();
 
   Future<Map<String, dynamic>> getMe() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/user/info'));
+      final response = await client.get(Uri.parse('$baseUrl/user/info'));
       if (response.statusCode == 200) {
         dynamic data = json.decode(response.body);
         await _secureStorage.write(key: 'name', value: data['name']);
@@ -37,7 +40,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getLatestTracks(String cookie) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/latest'),
         headers: {'token': cookie}
         );
@@ -54,7 +57,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getFollowTracks() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/follow'));
+      final response = await client.post(Uri.parse('$baseUrl/follow'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((item) => item as Map<String, dynamic>).toList();
@@ -68,7 +71,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getNewReleases() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/releases'));
+      final response = await client.post(Uri.parse('$baseUrl/releases'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((item) => item as Map<String, dynamic>).toList();
@@ -82,7 +85,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getRecommendedPlaylist() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/recommended'));
+      final response = await client.post(Uri.parse('$baseUrl/recommended'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((item) => item as Map<String, dynamic>).toList();
@@ -96,7 +99,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> createUser(String email, String password) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/user/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
@@ -113,7 +116,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/user/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
@@ -130,7 +133,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> userInfo(String cookie) async {
     try {
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse('$baseUrl/user/info'),
         headers: {'token': cookie},
       );
@@ -146,7 +149,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> createSongAuth(String songId, String token) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/auth'),
         headers: {'Content-Type': 'application/json', 'token': token},
         body: json.encode({'song_id': songId}),
@@ -163,7 +166,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getFlow(String cookie, String type) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/flow/$type'),
         headers: {'token': cookie}
         );
@@ -180,7 +183,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getNewTracks(String cookie) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/new'),
         headers: {'token': cookie}
         );
@@ -197,7 +200,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getForYouTrack(String cookie) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/for-you'),
         headers: {'token': cookie}
         );
@@ -214,7 +217,7 @@ class MusicApiService {
 
   Future<List<Map<String, dynamic>>> getFromFollow(String cookie) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/from-follow'),
         headers: {'token': cookie}
         );
@@ -232,7 +235,7 @@ class MusicApiService {
   Future<List<Map<String, dynamic>>> getSearch(String cookie, String name) async {
     AppLogger.log("hello: $name");
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/search'),
         headers: {'Content-Type': 'application/json', 'token': cookie},
         body: json.encode({'name': name}),
@@ -251,7 +254,7 @@ class MusicApiService {
   Future<Map<String, dynamic>> createLike(String songId, String token) async {
     AppLogger.log("hello: $songId/$token");
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/liked'),
         headers: {'Content-Type': 'application/json', 'token': token},
         body: json.encode({'song_id': songId}),
@@ -268,7 +271,7 @@ class MusicApiService {
 
   Future<bool> isLike(String songId, String token) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/is-liked'),
         headers: {'Content-Type': 'application/json', 'token': token},
         body: json.encode({'song_id': songId}),
@@ -291,7 +294,7 @@ class MusicApiService {
 
   Future<Map<String, dynamic>> yourArtist(String token) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/your-artist'),
         headers: {'Content-Type': 'application/json', 'token': token},
       );
@@ -307,7 +310,7 @@ class MusicApiService {
 
   Future<String> countLiked(String token) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/count-liked'),
         headers: {'Content-Type': 'application/json', 'token': token},
       );
@@ -324,7 +327,7 @@ class MusicApiService {
 
   Future<String> countFollow(String token) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse('$baseUrl/music/count-follow'),
         headers: {'Content-Type': 'application/json', 'token': token},
       );
