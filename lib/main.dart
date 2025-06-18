@@ -14,11 +14,14 @@ import 'package:flutter/material.dart';
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'manage/song_manage.dart';
 import 'manage/api_manage.dart';
 import 'manage/cache_manage.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   runApp(MyApp());
 }
 
