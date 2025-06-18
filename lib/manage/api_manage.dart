@@ -12,9 +12,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MusicApiService {
-  static const String baseUrl = 'http://192.168.1.53:8000';
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://192.168.1.53:8000';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<Map<String, dynamic>> getMe() async {
