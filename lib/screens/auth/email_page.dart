@@ -7,7 +7,7 @@
 ** It validates the email format and navigates to the password screen upon valid input.
 */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'password_page.dart';
 
@@ -55,19 +55,19 @@ class _EmailScreenState extends State<EmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.black,
+        border: null,
+        leading: CupertinoNavigationBarBackButton(
+          color: CupertinoColors.white,
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -77,29 +77,26 @@ class _EmailScreenState extends State<EmailScreen> {
               child: Text(
                 "Email",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: CupertinoColors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
+            CupertinoTextField(
               controller: _emailController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: CupertinoColors.white),
               textCapitalization: TextCapitalization.none,
               inputFormatters: [
                 LowerCaseTextFormatter(),
               ],
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[800],
-                hintText: 'your.name@epitech.eu',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+              placeholder: 'your.name@epitech.eu',
+              placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.darkBackgroundGray,
+                borderRadius: BorderRadius.circular(8),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -107,27 +104,23 @@ class _EmailScreenState extends State<EmailScreen> {
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: ElevatedButton(
+              child: CupertinoButton.filled(
                 onPressed: _isValidEmail
                     ? () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (context) => PasswordScreen(email: _emailController.text),
                           ),
                         );
                       }
                     : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  disabledBackgroundColor: Colors.blue.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                borderRadius: BorderRadius.circular(8),
+                disabledColor: CupertinoColors.systemBlue.withOpacity(0.5),
                 child: const Text(
                   "Continue",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: CupertinoColors.white),
                 ),
               ),
             ),

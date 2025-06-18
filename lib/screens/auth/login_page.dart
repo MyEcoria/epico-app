@@ -8,7 +8,7 @@
 ** and navigates to the home page upon successful login.
 */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
@@ -111,27 +111,29 @@ class _LoginPageState extends State<LoginPage> {
         top: MediaQuery.of(context).viewPadding.top,
         left: 0,
         right: 0,
-        child: Material(
-          color: Colors.transparent,
+        child: CupertinoPopupSurface(
+          isSurfacePainted: true,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: CupertinoColors.black,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.error, color: Colors.red),
-                SizedBox(width: 8),
+                const Icon(CupertinoIcons.exclamationmark_circle, color: CupertinoColors.destructiveRed),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     message,
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: CupertinoColors.white),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 20,
                   onPressed: _hideErrorMessage,
+                  child: const Icon(CupertinoIcons.xmark, color: CupertinoColors.white, size: 20),
                 ),
               ],
             ),
@@ -149,24 +151,24 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.black,
+        border: null,
+        leading: CupertinoNavigationBarBackButton(
+          color: CupertinoColors.white,
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
+              CupertinoPageRoute(
                 builder: (context) => HomePage(),
               ),
             );
           },
         ),
       ),
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,54 +177,50 @@ class _LoginPageState extends State<LoginPage> {
             const Text(
               "Login to your account",
               style: TextStyle(
-                color: Colors.white,
+                color: CupertinoColors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
+            CupertinoTextField(
               controller: _emailController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: CupertinoColors.white),
               keyboardType: TextInputType.emailAddress,
               inputFormatters: [
                 LowerCaseTextFormatter(),
               ],
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[800],
-                hintText: "Your email",
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+              placeholder: "Your email",
+              placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.darkBackgroundGray,
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             const SizedBox(height: 16),
-            TextField(
+            CupertinoTextField(
               controller: _passwordController,
               obscureText: _obscureText,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[800],
-                hintText: "Your password",
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: Colors.grey[400],
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
+              style: const TextStyle(color: CupertinoColors.white),
+              placeholder: "Your password",
+              placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.darkBackgroundGray,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              suffix: CupertinoButton(
+                padding: EdgeInsets.zero,
+                minSize: 20,
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+                child: Icon(
+                  _obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                  color: CupertinoColors.systemGrey,
                 ),
               ),
             ),
@@ -242,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           "Your password must include",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: CupertinoColors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -261,10 +259,10 @@ class _LoginPageState extends State<LoginPage> {
                           _passwordStrength,
                           style: TextStyle(
                             color: _passwordStrength == "Strong"
-                                ? Colors.green
+                                ? CupertinoColors.systemGreen
                                 : _passwordStrength == "Medium"
-                                    ? Colors.orange
-                                    : Colors.red,
+                                    ? CupertinoColors.systemOrange
+                                    : CupertinoColors.systemRed,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -277,38 +275,34 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: ElevatedButton(
+              child: CupertinoButton.filled(
                 onPressed: _isFormValid
-                  ? () async {
-                    try {
-                      final apiService = MusicApiService();
-                      final response = await apiService.loginUser(_emailController.text, _passwordController.text);
-                      if (response['status'] == 'ok') {
-                        _storeCookie(response['cookie']);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (context) => HomePage(),
-                          ),
-                      );
-                      } else {
-                      _showErrorMessage('Failed to create user: ${response['message']}');
+                    ? () async {
+                        try {
+                          final apiService = MusicApiService();
+                          final response = await apiService.loginUser(_emailController.text, _passwordController.text);
+                          if (response['status'] == 'ok') {
+                            _storeCookie(response['cookie']);
+                            Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
+                          } else {
+                            _showErrorMessage('Failed to create user: ${response['message']}');
+                          }
+                        } catch (e) {
+                          _showErrorMessage('Error: $e');
+                        }
                       }
-                    } catch (e) {
-                      _showErrorMessage('Error: $e');
-                    }
-                    }
-                  : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  disabledBackgroundColor: Colors.blue.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                    : null,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                borderRadius: BorderRadius.circular(8),
+                disabledColor: CupertinoColors.systemBlue.withOpacity(0.5),
                 child: const Text(
                   "Continue",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: CupertinoColors.white),
                 ),
               ),
             ),
@@ -326,20 +320,20 @@ class _LoginPageState extends State<LoginPage> {
           height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isValid ? Colors.green : Colors.transparent,
+            color: isValid ? CupertinoColors.systemGreen : CupertinoColors.transparent,
             border: isValid
                 ? null
-                : Border.all(color: Colors.grey, width: 1),
+                : Border.all(color: CupertinoColors.systemGrey, width: 1),
           ),
           child: isValid
-              ? Icon(Icons.check, size: 14, color: Colors.white)
+              ? const Icon(CupertinoIcons.check_mark, size: 14, color: CupertinoColors.white)
               : null,
         ),
         SizedBox(width: 8),
         Text(
           text,
           style: TextStyle(
-            color: Colors.white,
+            color: CupertinoColors.white,
             fontSize: 14,
           ),
         ),

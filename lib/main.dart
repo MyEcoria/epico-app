@@ -10,7 +10,7 @@
 ** If authenticated, it navigates to the MusicAppHomePage; otherwise, it shows the HomePage.
 */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -71,14 +71,25 @@ class MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return CupertinoApp(
       title: 'Epico',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      theme: const CupertinoThemeData(
+        brightness: Brightness.dark,
+        primaryColor: CupertinoColors.activeBlue,
+        textTheme: CupertinoTextThemeData(
+          textStyle: TextStyle(fontFamily: '.SF Pro Text'),
+        ),
       ),
+      localizationsDelegates: const [
+        DefaultCupertinoLocalizations.delegate,
+        DefaultWidgetsLocalizations.delegate,
+        DefaultMaterialLocalizations.delegate,
+      ],
       home: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _isAuthenticated ? MusicAppHomePage(songManager: SongManager()) : HomePage(),
+          ? const Center(child: CupertinoActivityIndicator())
+          : _isAuthenticated
+              ? MusicAppHomePage(songManager: SongManager())
+              : HomePage(),
     );
   }
 }

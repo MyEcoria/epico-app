@@ -7,7 +7,7 @@
 ** It handles authentication checks and navigation to the appropriate screens.
 */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epico/screens/auth/email_page.dart';
 import 'package:epico/screens/auth/login_page.dart';
@@ -65,9 +65,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(50.0),
           child: Column(
@@ -86,41 +86,39 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               Text(
                 'For epitech students',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: CupertinoColors.white,
                   fontSize: 16,
                 ),
               ),
               Spacer(),
               // Buttons
-              ElevatedButton(
+              CupertinoButton.filled(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => EmailScreen()),
+                    CupertinoPageRoute(builder: (context) => EmailScreen()),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 0),
+                borderRadius: BorderRadius.circular(25),
+                child: const Text(
+                  'Sign up',
+                  style: TextStyle(color: CupertinoColors.black),
                 ),
-                child: Text('Sign up'),
               ),
               SizedBox(height: 16),
-              TextButton(
+              CupertinoButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
+                    CupertinoPageRoute(builder: (context) => LoginPage()),
                   );
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: const Text(
+                  'Log in',
+                  style: TextStyle(color: CupertinoColors.white),
                 ),
-                child: Text('Log in'),
               ),
             ],
           ),
