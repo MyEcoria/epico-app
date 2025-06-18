@@ -50,3 +50,8 @@ Execute the analyzer and test suite with:
 flutter analyze
 flutter test
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
