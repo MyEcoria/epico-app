@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_manage.dart';
+import '../logger.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -91,7 +92,7 @@ class SongManager {
         instant: true,
       );
     } else {
-      debugPrint('No more songs in the queue.');
+      AppLogger.log('No more songs in the queue.');
     }
   }
 
@@ -127,7 +128,7 @@ class SongManager {
         songId: element['song_id'],
       );
       } else {
-      debugPrint('Skipping song with missing information: $element');
+      AppLogger.log('Skipping song with missing information: $element');
       }
     }
     if (_queue.isNotEmpty) {
@@ -140,7 +141,7 @@ class SongManager {
       songId: _queue[_queueIndex]['songId'],
       );
     } else {
-      debugPrint('No valid songs to play.');
+      AppLogger.log('No valid songs to play.');
     }
   }
 
@@ -153,7 +154,7 @@ class SongManager {
     required String songId,
     bool instant = true,
   }) async {
-    debugPrint('Toggling song: $name/$description/$songUrl/$pictureUrl/$artist/$songId');
+    AppLogger.log('Toggling song: $name/$description/$songUrl/$pictureUrl/$artist/$songId');
     try {
       if (_currentSongUrl == songUrl) {
         if (_isPlaying) {
@@ -217,7 +218,7 @@ class SongManager {
         }
       }
     } catch (e) {
-      debugPrint('Error playing song: $e');
+      AppLogger.log('Error playing song: $e');
       _isPlaying = false;
     }
   }

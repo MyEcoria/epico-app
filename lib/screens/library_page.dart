@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../logger.dart';
 
 class LibraryPage extends StatefulWidget {
   final SongManager songManager;
@@ -43,7 +44,7 @@ class _LibraryPageState extends State<LibraryPage> {
         setState(() {
           _isLoading = false;
         });
-        debugPrint('Error loading recently played tracks: $e');
+        AppLogger.log('Error loading recently played tracks: $e');
       }
     } else {
       setState(() {
@@ -60,7 +61,7 @@ class _LibraryPageState extends State<LibraryPage> {
           _likedCount = count;
         });
       } catch (e) {
-        debugPrint('Error loading liked count: $e');
+        AppLogger.log('Error loading liked count: $e');
       }
     }
   }
@@ -73,7 +74,7 @@ class _LibraryPageState extends State<LibraryPage> {
           _artistCount = count;
         });
       } catch (e) {
-        debugPrint('Error loading artist count: $e');
+        AppLogger.log('Error loading artist count: $e');
       }
     }
   }
