@@ -212,6 +212,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: _dominantColor.withOpacity(0.6)),
                       boxShadow: [
                         BoxShadow(
                           color: _dominantColor.withOpacity(0.3),
@@ -315,12 +316,19 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
       minChildSize: 0.9,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.black,
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: _dominantColor.withOpacity(0.4),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
           ),
           child: ListView(
             controller: scrollController,
@@ -351,12 +359,12 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: _dominantColor, width: 4),
                         boxShadow: [
-                          BoxShadow( 
-                            color: Colors.black.withOpacity(0.3), 
-                            blurRadius: 20, 
-                            offset: const Offset(0, 10), 
-                          ), 
-                        ], 
+                          BoxShadow(
+                            color: _dominantColor.withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                         image: DecorationImage( 
                           image: NetworkImage(songState['pictureUrl'] ?? ''), 
                           fit: BoxFit.cover, 
