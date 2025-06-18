@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'confirmation_page.dart';
 import '../../manage/api_manage.dart';
 import '../../logger.dart';
@@ -64,27 +64,29 @@ class _PasswordScreenState extends State<PasswordScreen> {
         top: MediaQuery.of(context).viewPadding.top,
         left: 0,
         right: 0,
-        child: Material(
-          color: Colors.transparent,
+        child: CupertinoPopupSurface(
+          isSurfacePainted: true,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: CupertinoColors.black,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.error, color: Colors.red),
+                Icon(CupertinoIcons.exclamationmark_circle, color: CupertinoColors.destructiveRed),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     message,
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: CupertinoColors.white),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 20,
                   onPressed: _hideErrorMessage,
+                  child: Icon(CupertinoIcons.xmark, color: CupertinoColors.white, size: 20),
                 ),
               ],
             ),
@@ -102,24 +104,23 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.black,
+        border: null,
+        leading: CupertinoNavigationBarBackButton(
+          color: CupertinoColors.white,
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text(
+        middle: const Text(
           "Sign up",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: CupertinoColors.white),
         ),
-        centerTitle: true,
       ),
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,35 +129,34 @@ class _PasswordScreenState extends State<PasswordScreen> {
             const Text(
               "Create a password",
               style: TextStyle(
-                color: Colors.white,
+                color: CupertinoColors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
+            CupertinoTextField(
               controller: _passwordController,
               obscureText: _obscureText,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[800],
-                hintText: "Your password",
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: Colors.grey[400],
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
+              style: const TextStyle(color: CupertinoColors.white),
+              placeholder: "Your password",
+              placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.darkBackgroundGray,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              suffix: CupertinoButton(
+                padding: EdgeInsets.zero,
+                minSize: 20,
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+                child: Icon(
+                  _obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                  color: CupertinoColors.systemGrey,
                 ),
               ),
             ),
@@ -176,7 +176,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                         Text(
                           "Your password must include",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: CupertinoColors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -195,10 +195,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
                           _passwordStrength,
                           style: TextStyle(
                             color: _passwordStrength == "Strong"
-                                ? Colors.green
+                                ? CupertinoColors.systemGreen
                                 : _passwordStrength == "Medium"
-                                    ? Colors.orange
-                                    : Colors.red,
+                                    ? CupertinoColors.systemOrange
+                                    : CupertinoColors.systemRed,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -211,17 +211,17 @@ class _PasswordScreenState extends State<PasswordScreen> {
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: ElevatedButton(
+              child: CupertinoButton.filled(
                 onPressed: _isPasswordValid
-                  ? () async {
+                    ? () async {
                     try {
                       final apiService = MusicApiService();
                       final response = await apiService.createUser(widget.email, _passwordController.text);
                       if (response['status'] == 'ok') {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                        builder: (context) => ConfirmationPage(),
+                        CupertinoPageRoute(
+                          builder: (context) => ConfirmationPage(),
                         ),
                       );
                       } else {
@@ -231,17 +231,13 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       _showErrorMessage('Error: $e');
                     }
                     }
-                  : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  disabledBackgroundColor: Colors.blue.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                    : null,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                borderRadius: BorderRadius.circular(8),
+                disabledColor: CupertinoColors.systemBlue.withOpacity(0.5),
                 child: const Text(
                   "Continue",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: CupertinoColors.white),
                 ),
               ),
             ),
@@ -259,20 +255,20 @@ class _PasswordScreenState extends State<PasswordScreen> {
           height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isValid ? Colors.green : Colors.transparent,
+            color: isValid ? CupertinoColors.systemGreen : CupertinoColors.transparent,
             border: isValid
                 ? null
-                : Border.all(color: Colors.grey, width: 1),
+                : Border.all(color: CupertinoColors.systemGrey, width: 1),
           ),
           child: isValid
-              ? Icon(Icons.check, size: 14, color: Colors.white)
+              ? const Icon(CupertinoIcons.check_mark, size: 14, color: CupertinoColors.white)
               : null,
         ),
         SizedBox(width: 8),
         Text(
           text,
           style: TextStyle(
-            color: Colors.white,
+            color: CupertinoColors.white,
             fontSize: 14,
           ),
         ),

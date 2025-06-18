@@ -11,6 +11,8 @@
 */
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/material.dart' show DefaultMaterialLocalizations;
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

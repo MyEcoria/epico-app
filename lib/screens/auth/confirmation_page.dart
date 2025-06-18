@@ -6,16 +6,16 @@
 ** This file contains the UI for the confirmation screen.
 ** It displays a success message and a button to navigate to the login page.
 */
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
 
 class ConfirmationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      child: SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -26,7 +26,7 @@ class ConfirmationPage extends StatelessWidget {
                     Text(
                       'Mail sent :)',
                       style: TextStyle(
-                        color: Colors.white, 
+                        color: CupertinoColors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -45,27 +45,22 @@ class ConfirmationPage extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 height: 50,
-                child: ElevatedButton(
+                child: CupertinoButton.filled(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      CupertinoPageRoute(
                         builder: (context) => LoginPage(),
                       ),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(30),
                   child: Text(
                     'Login',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
+                      color: CupertinoColors.black,
                     ),
                   ),
                 ),

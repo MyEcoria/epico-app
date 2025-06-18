@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         cache.setCacheValue('email', userInfo['email']);
         // If auth token exists and user info is valid, navigate to listen page
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
+          CupertinoPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
         );
       } catch (e) {
         AppLogger.log('Error fetching user info: $e');
