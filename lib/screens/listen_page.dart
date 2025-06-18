@@ -20,9 +20,57 @@ import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:async/async.dart';
 import '../manage/cache_manage.dart';
 import 'library_page.dart';
+import 'package:flutter/cupertino.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+class GenreTile extends StatelessWidget {
+  final String name;
+  final Color overlayColor;
+
+  const GenreTile({
+    Key? key,
+    required this.name,
+    required this.overlayColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            "assets/illustrator/${name.toLowerCase()}.png",
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            color: overlayColor.withOpacity(0.2),
+            colorBlendMode: BlendMode.srcOver,
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+            decoration: BoxDecoration(
+              color: overlayColor.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              name,
+              style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.white,
+                    fontFamily: '.SF Pro Text',
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -1181,31 +1229,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   }
 
   Widget _buildGenreItem(String name, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        image: DecorationImage(
-          image: AssetImage("assets/illustrator/${name.toLowerCase()}.png"),
-          fit: BoxFit.cover,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
+    return GenreTile(name: name, overlayColor: color);
   }
 
   Widget _buildRecentSearchItem(String title, String subtitle, String imageUrl, String songUrl, String songId, String artist, bool downloaded) {
