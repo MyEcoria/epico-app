@@ -214,7 +214,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: kBottomNavigationBarHeight + 2,
+            bottom: kBottomNavigationBarHeight + 1,
             child: StreamBuilder<Map<String, dynamic>>(
               stream: widget.songManager.songStateStream,
               builder: (context, snapshot) {

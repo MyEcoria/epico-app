@@ -7,4 +7,4 @@
 - Polish layout spacing and transitions
 - Change the Search page layout and how items are displayed
 - Remove "Clear history" from the search results screen
-- Improve mini-player: circular with playback glow, positioned closer to the navigation bar and fades when expanded
+- Improve mini-player: circular with playback glow, more opaque, positioned even closer to the navigation bar, and fades when expanded

@@ -191,7 +191,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.95),
+                    color: Colors.black.withOpacity(0.98),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
