@@ -14,12 +14,12 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MusicApiService {
-  static const String baseUrl = 'http://192.168.1.53:3000';
+  static const String baseUrl = 'http://192.168.1.53:8000';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<Map<String, dynamic>> getMe() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/me'));
+      final response = await http.get(Uri.parse('$baseUrl/user/info'));
       if (response.statusCode == 200) {
         dynamic data = json.decode(response.body);
         await _secureStorage.write(key: 'name', value: data['name']);
@@ -34,7 +34,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getLatestTracks(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/latest'),
@@ -42,7 +41,6 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest tracks: $data');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load latest tracks: ${response.statusCode}');
@@ -135,7 +133,6 @@ class MusicApiService {
         headers: {'token': cookie},
       );
       if (response.statusCode == 200) {
-        debugPrint('User info: ${response.body}');
         return json.decode(response.body);
       } else {
         throw Exception('Failed to load user info: ${response.statusCode}');
@@ -146,7 +143,6 @@ class MusicApiService {
   }
 
   Future<Map<String, dynamic>> createSongAuth(String songId, String token) async {
-    debugPrint('Creating song auth for song: $songId');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/auth'),
@@ -164,7 +160,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getFlow(String cookie, String type) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/flow/$type'),
@@ -172,7 +167,6 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest New: ${data.length}');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load latest tracks: ${response.statusCode}');
@@ -183,7 +177,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getNewTracks(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/new'),
@@ -201,7 +194,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getForYouTrack(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/for-you'),
@@ -219,7 +211,6 @@ class MusicApiService {
   }
 
   Future<List<Map<String, dynamic>>> getFromFollow(String cookie) async {
-    debugPrint('Cookie: $cookie');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/from-follow'),
@@ -227,13 +218,121 @@ class MusicApiService {
         );
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        debugPrint('Latest tracks: $data');
         return data.map((item) => item as Map<String, dynamic>).toList();
       } else {
         throw Exception('Failed to load from follow tracks: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error fetching from follow tracks: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getSearch(String cookie, String name) async {
+    debugPrint("hello: $name");
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/search'),
+        headers: {'Content-Type': 'application/json', 'token': cookie},
+        body: json.encode({'name': name}),
+        );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load from follow tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching from follow tracks: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createLike(String songId, String token) async {
+    debugPrint("hello: $songId/$token");
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+        body: json.encode({'song_id': songId}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<bool> isLike(String songId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/is-liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+        body: json.encode({'song_id': songId}),
+      );
+      if (response.statusCode == 200) {
+        final rep = json.decode(response.body);
+        debugPrint("rep: $rep");
+        if (rep["liked"] == "true") {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> yourArtist(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/your-artist'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<String> countLiked(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/count-liked'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      debugPrint("response: ${response.body}");
+      if (response.statusCode == 200) {
+        return json.decode(response.body)["count"].toString();
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<String> countFollow(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/music/count-follow'),
+        headers: {'Content-Type': 'application/json', 'token': token},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)["count"].toString();
+      } else {
+        throw Exception('Failed to create auth user: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error create auth user: $e');
     }
   }
 }
