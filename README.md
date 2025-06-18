@@ -1,27 +1,52 @@
 # deezer_app
 
-A new Flutter project.
+A simple Flutter music streaming client demo created for an EPITECH project. It provides a basic Deezer-like experience for playing tracks and managing user data.
 
-## Getting Started
+## Prerequisites
 
-This project is a starting point for a Flutter application.
+- **Flutter**: 3.10 or higher (stable channel)
+- **Dart**: 3.7 or higher
 
-A few resources to get you started if this is your first Flutter project:
+Ensure you have Flutter installed by following the [Flutter installation guide](https://docs.flutter.dev/get-started/install).
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Running the application
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Android
+```sh
+flutter run
+```
+
+### iOS
+```sh
+flutter run -d ios
+```
+
+### Web
+```sh
+flutter run -d chrome
+```
 
 ## Configuration
 
-The API base URL is read from an environment file. Create a `.env` file at the
-project root with the following contents:
+The API base URL is read from an environment file. Create a `.env` file at the project root with the following contents:
 
 ```env
 BASE_URL=http://your-api-host:8000
 ```
 
 Update the value to match your development or production environment.
+
+## Contribution
+
+1. Fork this repository and create a new branch for your feature or fix.
+2. Run `flutter analyze` and `flutter test` before opening a pull request.
+3. Submit the pull request against the `main` branch.
+
+## Testing
+
+Execute the analyzer and test suite with:
+
+```sh
+flutter analyze
+flutter test
+```
