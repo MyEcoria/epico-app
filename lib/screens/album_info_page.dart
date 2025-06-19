@@ -78,8 +78,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             image: DecorationImage(
-                              image: NetworkImage(
-                                  _album!["cover"] ?? _album!["ALB_PICTURE"]),
+                              image: NetworkImage("https://cdn-images.dzcdn.net/images/cover/${_album!["cover"] ?? _album!["ALB_PICTURE"]}/500x500-000000-80-0-0.jpg"),
                               fit: BoxFit.cover,
                             ),
                           ),

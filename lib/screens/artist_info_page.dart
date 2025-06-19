@@ -36,6 +36,7 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Artist Info: $_artist");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Artist info'),
@@ -62,7 +63,7 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                             borderRadius: BorderRadius.circular(8),
                             image: DecorationImage(
                               image: NetworkImage(
-                                  _artist!["picture"] ?? _artist!["ART_PICTURE"]),
+                              'https://cdn-images.dzcdn.net/images/artist/${_artist!["ART_PICTURE"]}/500x500-000000-80-0-0.jpg'),
                               fit: BoxFit.cover,
                             ),
                           ),

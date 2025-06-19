@@ -1042,6 +1042,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 itemBuilder: (context, index) {
                 final artist = artists[index];
                 return _buildArtistItem(
+                  artist['id'] ?? '',
                   artist['auteur'] ?? 'Unknown',
                   artist['cover'] ?? 'assets/default_artist.jpg',
                 );
@@ -1220,8 +1221,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemCount: artists.length,
                           itemBuilder: (context, index) {
                             final artist = artists[index];
+                            debugPrint("Artist: $artist");
                             return _buildArtistSearchItem(
-                              artist['id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
+                              artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
                               artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
                             );
@@ -1251,8 +1253,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemCount: albums.length,
                           itemBuilder: (context, index) {
                             final album = albums[index];
+                            debugPrint("Album: $album");
                             return _buildAlbumSearchItem(
-                              album['id']?.toString() ?? album['ALB_ID']?.toString() ?? '',
+                              album['album_id']?.toString() ?? album['ALB_ID']?.toString() ?? '',
                               album['title'] ?? album['name'] ?? 'Unknown Album',
                               album['cover'] ?? 'https://via.placeholder.com/150',
                             );
@@ -1319,28 +1322,35 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildArtistItem(String name, String imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.grey.shade700,
-            backgroundImage: NetworkImage(imageUrl),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 80,
-            child: Text(
-              name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+  Widget _buildArtistItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.grey.shade700,
+              backgroundImage: NetworkImage(imageUrl),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1348,6 +1358,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   Widget _buildArtistSearchItem(String id, String name, String imageUrl) {
     return GestureDetector(
       onTap: () {
+        debugPrint("Tapped on artist: $name with ID: $id");
         if (id.isNotEmpty) {
           NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
         }
