@@ -11,6 +11,7 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'screens/auth/home_page.dart';
 import 'screens/listen_page.dart';
 import 'theme.dart';
@@ -19,7 +20,13 @@ import 'manage/song_manage.dart';
 import 'manage/api_manage.dart';
 import 'manage/cache_manage.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.epico.audio',
+    androidNotificationChannelName: 'Audio Playback',
+    androidNotificationOngoing: true,
+  );
   runApp(MyApp());
 }
 
