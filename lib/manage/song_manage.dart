@@ -9,11 +9,13 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'api_manage.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -25,6 +27,10 @@ class SongManager {
 
   final List<Map<String, dynamic>> _queue = [];
   static int _queueIndex = 0;
+
+  SongManager() {
+    _initNotifications();
+  }
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -236,5 +242,22 @@ class SongManager {
 
   void dispose() {
     _audioPlayer.dispose();
+  }
+
+  Future<void> _initNotifications() async {
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
+    await _notificationsPlugin.initialize(initSettings);
+
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestPermission();
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 }
