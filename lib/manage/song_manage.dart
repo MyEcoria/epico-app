@@ -16,6 +16,8 @@ class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  static const int _notificationId = 0;
+  static const String _notificationChannel = 'media_channel';
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -165,10 +167,12 @@ class SongManager {
         if (_isPlaying) {
           await _audioPlayer.pause();
           _isPlaying = false;
+          await _showMediaNotification();
           return;
         } else {
           await _audioPlayer.resume();
           _isPlaying = true;
+          await _showMediaNotification();
           return;
         }
       }
@@ -187,6 +191,7 @@ class SongManager {
           final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
           await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
         _isPlaying = true;
+        await _showMediaNotification();
 
         } else {
           throw Exception('Auth cookie is null');
@@ -212,6 +217,7 @@ class SongManager {
             final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
             await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
           _isPlaying = true;
+          await _showMediaNotification();
 
           } else {
             throw Exception('Auth cookie is null');
@@ -242,6 +248,61 @@ class SongManager {
 
   void dispose() {
     _audioPlayer.dispose();
+    _notificationsPlugin.cancel(_notificationId);
+  }
+
+  @pragma('vm:entry-point')
+  void _handleNotificationResponse(NotificationResponse response) {
+    switch (response.actionId) {
+      case 'previous':
+        playLastFromQueue();
+        break;
+      case 'play':
+        if (_isPlaying) {
+          _audioPlayer.pause();
+          _isPlaying = false;
+        } else {
+          _audioPlayer.resume();
+          _isPlaying = true;
+        }
+        _showMediaNotification();
+        break;
+      case 'next':
+        playNextInQueue();
+        break;
+    }
+  }
+
+  Future<void> _showMediaNotification() async {
+    final androidDetails = AndroidNotificationDetails(
+      _notificationChannel,
+      'Media Playback',
+      channelDescription: 'Control music playback',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: false,
+      ongoing: true,
+      styleInformation: const MediaStyleInformation(),
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction('previous', 'Prev'),
+        AndroidNotificationAction('play', _isPlaying ? 'Pause' : 'Play'),
+        const AndroidNotificationAction('next', 'Next'),
+      ],
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    final notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notificationsPlugin.show(
+      _notificationId,
+      _currentSongName ?? 'Playing',
+      _currentArtist ?? '',
+      notificationDetails,
+    );
   }
 
   Future<void> _initNotifications() async {
@@ -251,7 +312,10 @@ class SongManager {
       android: androidInit,
       iOS: iosInit,
     );
-    await _notificationsPlugin.initialize(initSettings);
+    await _notificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+    );
 
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
