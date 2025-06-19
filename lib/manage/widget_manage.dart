@@ -9,7 +9,7 @@
 
 import 'package:epico/manage/api_manage.dart';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
@@ -130,7 +130,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   }
 
   void _setupPositionListener() {
-    _audioPlayer.onPositionChanged.listen((position) {
+    _audioPlayer.positionStream.listen((position) {
       if (!_isDragging && mounted) {
         setState(() {
           _position = position;

@@ -7,7 +7,8 @@
 */
 
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_manage.dart';
 
@@ -31,7 +32,7 @@ class SongManager {
   }
 
   bool isPlaying() {
-    return _audioPlayer.state == PlayerState.playing;
+    return _audioPlayer.playing;
   }
 
   bool isPlayingSong(String songUrl) {
@@ -39,17 +40,17 @@ class SongManager {
   }
 
   bool isPaused() {
-    return _audioPlayer.state == PlayerState.paused;
+    return !_audioPlayer.playing;
   }
 
   bool isPausedSong(String songUrl) {
-    return _currentSongUrl == songUrl && _audioPlayer.state == PlayerState.paused;
+    return _currentSongUrl == songUrl && !_audioPlayer.playing;
   }
 
-  Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
-  Stream<bool> get isPausedStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.paused);
-  Stream<Duration> get positionStream => _audioPlayer.onPositionChanged;
-  Stream<Map<String, dynamic>> get songStateStream => _audioPlayer.onPlayerStateChanged.map((state) => getSongState());
+  Stream<bool> get isPlayingStream => _audioPlayer.playerStateStream.map((state) => state.playing);
+  Stream<bool> get isPausedStream => _audioPlayer.playerStateStream.map((state) => !state.playing);
+  Stream<Duration> get positionStream => _audioPlayer.positionStream;
+  Stream<Map<String, dynamic>> get songStateStream => _audioPlayer.playerStateStream.map((state) => getSongState());
 
   void addToQueue({
     required String name,
@@ -161,7 +162,7 @@ class SongManager {
           _isPlaying = false;
           return;
         } else {
-          await _audioPlayer.resume();
+          await _audioPlayer.play();
           _isPlaying = true;
           return;
         }
@@ -179,15 +180,28 @@ class SongManager {
         final authCookie = await _secureStorage.read(key: 'auth');
         if (authCookie != null) {
           final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
-          await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
-        _isPlaying = true;
-
+          final urlWithToken = '$songUrl?token=${pubKey['token']}';
+          await _audioPlayer.setAudioSource(
+            AudioSource.uri(
+              Uri.parse(urlWithToken),
+              tag: MediaItem(
+                id: songId,
+                title: name,
+                artist: artist,
+                artUri: Uri.parse(pictureUrl),
+              ),
+            ),
+          );
+          await _audioPlayer.play();
+          _isPlaying = true;
         } else {
           throw Exception('Auth cookie is null');
         }
 
-        _audioPlayer.onPlayerComplete.listen((event) async {
-          await playNextInQueue();
+        _audioPlayer.playerStateStream.listen((state) async {
+          if (state.processingState == ProcessingState.completed) {
+            await playNextInQueue();
+          }
         });
       } else {
         addToQueue(
@@ -204,15 +218,28 @@ class SongManager {
           final authCookie = await _secureStorage.read(key: 'auth');
           if (authCookie != null) {
             final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
-            await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
-          _isPlaying = true;
-
+            final urlWithToken = '$songUrl?token=${pubKey['token']}';
+            await _audioPlayer.setAudioSource(
+              AudioSource.uri(
+                Uri.parse(urlWithToken),
+                tag: MediaItem(
+                  id: songId,
+                  title: name,
+                  artist: artist,
+                  artUri: Uri.parse(pictureUrl),
+                ),
+              ),
+            );
+            await _audioPlayer.play();
+            _isPlaying = true;
           } else {
             throw Exception('Auth cookie is null');
           }
 
-          _audioPlayer.onPlayerComplete.listen((event) async {
-            await playNextInQueue();
+          _audioPlayer.playerStateStream.listen((state) async {
+            if (state.processingState == ProcessingState.completed) {
+              await playNextInQueue();
+            }
           });
         }
       }
