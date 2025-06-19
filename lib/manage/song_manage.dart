@@ -9,11 +9,13 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'api_manage.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -25,6 +27,10 @@ class SongManager {
 
   final List<Map<String, dynamic>> _queue = [];
   static int _queueIndex = 0;
+
+  SongManager() {
+    _initNotifications();
+  }
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -76,6 +82,38 @@ class SongManager {
   void clearQueue() {
     _queue.clear();
     _queueIndex = 0;
+  }
+
+  Future<void> _showPlaybackNotification() async {
+    if (_currentSongName == null || _currentArtist == null) {
+      return;
+    }
+    final androidDetails = AndroidNotificationDetails(
+      'playback_channel',
+      'Playback',
+      channelDescription: 'Currently playing song',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      styleInformation: const MediaStyleInformation(),
+    );
+    final notificationDetails = NotificationDetails(android: androidDetails);
+    await _notificationsPlugin.show(
+      0,
+      _currentSongName,
+      _currentArtist,
+      notificationDetails,
+    );
+  }
+
+  Future<void> _cancelNotification() async {
+    await _notificationsPlugin.cancel(0);
+  }
+
+  Future<void> _initNotifications() async {
+    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    await _notificationsPlugin.initialize(initSettings);
   }
 
   Future<void> playNextInQueue() async {
@@ -159,10 +197,12 @@ class SongManager {
         if (_isPlaying) {
           await _audioPlayer.pause();
           _isPlaying = false;
+          await _cancelNotification();
           return;
         } else {
           await _audioPlayer.resume();
           _isPlaying = true;
+          await _showPlaybackNotification();
           return;
         }
       }
@@ -180,8 +220,8 @@ class SongManager {
         if (authCookie != null) {
           final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
           await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
-        _isPlaying = true;
-
+          _isPlaying = true;
+          await _showPlaybackNotification();
         } else {
           throw Exception('Auth cookie is null');
         }
@@ -205,7 +245,8 @@ class SongManager {
           if (authCookie != null) {
             final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
             await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
-          _isPlaying = true;
+            _isPlaying = true;
+            await _showPlaybackNotification();
 
           } else {
             throw Exception('Auth cookie is null');
@@ -219,6 +260,7 @@ class SongManager {
     } catch (e) {
       debugPrint('Error playing song: $e');
       _isPlaying = false;
+      await _cancelNotification();
     }
   }
 
@@ -236,5 +278,6 @@ class SongManager {
 
   void dispose() {
     _audioPlayer.dispose();
+    _cancelNotification();
   }
 }
