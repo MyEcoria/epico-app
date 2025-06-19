@@ -368,7 +368,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final track = snapshot.data![index];
-                          debugPrint('track: $track');
                           return _buildAlbumCard(
                             track['title'] ?? 'Unknown Title',
                             track['cover'] ?? 'assets/caca.jpg',
@@ -1110,7 +1109,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: TextField(
@@ -1118,6 +1116,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       hintText: "Search songs, artist, album or playlist",
                       hintStyle: TextStyle(color: Colors.grey),
                       border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.white70),
                     ),
                     style: const TextStyle(color: Colors.white),
                     onChanged: (query) async {
@@ -1125,9 +1124,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       if (query.isNotEmpty) {
                         debugPrint(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
-                        debugPrint(results.toString());
+                        debugPrint("Search API Response: $results");
                         setState(() {
-                          _searchResults = results;
+                          _searchResults = [results]; // Wrapping the response in a list
                         });
                       } else {
                         setState(() {
@@ -1146,23 +1145,58 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           child: StatefulBuilder(
             builder: (context, setStateSB) {
               Future<void>.delayed(const Duration(seconds: 2), () async {
-                if (_searchResults.any((e) => e['downloaded'] == false)) {
+                if (_searchResults.isNotEmpty && 
+                    _searchResults.first.containsKey("songsArray") &&
+                    (_searchResults.first["songsArray"] as List).any((e) => e['downloaded'] == false)) {
                   if (mounted) setStateSB(() {});
                 }
                 var results = await MusicApiService().getSearch(authCookie!, _lastQuery);
                 setState(() {
-                  _searchResults = results;
+                  _searchResults = [results];
                 });
               });
-
-              final songs = _searchResults.where((item) => item.containsKey('song')).toList();
-              final artists = _searchResults.where((item) => item.containsKey('artist_id')).toList();
-              final albums = _searchResults.where((item) => item.containsKey('album_id')).toList();
-
+              
+              debugPrint('Search Results: $_searchResults');
+              
+              // Extract different types of results from the API response
+              List<Map<String, dynamic>> songs = [];
+              List<Map<String, dynamic>> artists = [];
+              List<Map<String, dynamic>> albums = [];
+              
+              if (_searchResults.isNotEmpty) {
+                final response = _searchResults.first;
+                
+                // Extract songs from songsArray
+                if (response.containsKey("songsArray")) {
+                  songs = (response["songsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+                
+                // Extract artists from artistsArray
+                if (response.containsKey("artistsArray")) {
+                  artists = (response["artistsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+                
+                // Extract albums from albumsArray
+                if (response.containsKey("albumsArray")) {
+                  albums = (response["albumsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+              }
+              
+              debugPrint('Songs: ${songs.length}');
+              debugPrint('Artists: ${artists.length}');
+              debugPrint('Albums: ${albums.length}');
+              
               return SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Artists Section
                     if (artists.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1184,14 +1218,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final artist = artists[index];
                             return _buildArtistSearchItem(
-                              artist['name'] ?? 'Unknown Artist',
-                              artist['cover'] ?? 'assets/default_artist.jpg',
+                              artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
+                              artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
                             );
                           },
                         ),
                       ),
                     ],
-
+                    
+                    // Albums Section
                     if (albums.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1213,14 +1248,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final album = albums[index];
                             return _buildAlbumSearchItem(
-                              album['name'] ?? 'Unknown Album',
-                              album['cover'] ?? 'assets/default_album.jpg',
+                              album['title'] ?? album['name'] ?? 'Unknown Album',
+                              album['cover'] ?? 'https://via.placeholder.com/150',
                             );
                           },
                         ),
                       ),
                     ],
-
+                    
+                    // Songs Section
                     if (songs.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1250,7 +1286,23 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         },
                       ),
                     ],
-
+                    
+                    // Show message if no results
+                    if (songs.isEmpty && artists.isEmpty && albums.isEmpty && _searchResults.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Text(
+                            "No results found",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    
                     const SizedBox(height: 80),
                   ],
                 ),

@@ -227,22 +227,21 @@ class MusicApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getSearch(String cookie, String name) async {
+  Future<Map<String, dynamic>> getSearch(String cookie, String name) async {
     debugPrint("hello: $name");
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/search'),
         headers: {'Content-Type': 'application/json', 'token': cookie},
         body: json.encode({'name': name}),
-        );
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item as Map<String, dynamic>).toList();
-      } else {
-        throw Exception('Failed to load from follow tracks: ${response.statusCode}');
-      }
+      );
+      debugPrint("Search response: ${response.body}");
+      
+      // Retourner l'objet complet au lieu d'une liste
+      Map<String, dynamic> data = json.decode(response.body);
+      return data;
     } catch (e) {
-      throw Exception('Error fetching from follow tracks: $e');
+      throw Exception('Error fetching search results: $e');
     }
   }
 
