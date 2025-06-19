@@ -1141,22 +1141,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             ],
           ),
         ),
-        
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Search results",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        
+
         Expanded(
           child: StatefulBuilder(
             builder: (context, setStateSB) {
@@ -1169,24 +1154,110 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   _searchResults = results;
                 });
               });
-              return GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+
+              final songs = _searchResults.where((item) => item.containsKey('song')).toList();
+              final artists = _searchResults.where((item) => item.containsKey('artist_id')).toList();
+              final albums = _searchResults.where((item) => item.containsKey('album_id')).toList();
+
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (artists.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Artists",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 120,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: artists.length,
+                          itemBuilder: (context, index) {
+                            final artist = artists[index];
+                            return _buildArtistSearchItem(
+                              artist['name'] ?? 'Unknown Artist',
+                              artist['cover'] ?? 'assets/default_artist.jpg',
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+
+                    if (albums.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Albums",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 160,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: albums.length,
+                          itemBuilder: (context, index) {
+                            final album = albums[index];
+                            return _buildAlbumSearchItem(
+                              album['name'] ?? 'Unknown Album',
+                              album['cover'] ?? 'assets/default_album.jpg',
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+
+                    if (songs.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Songs",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: songs.length,
+                        itemBuilder: (context, index) {
+                          final result = songs[index];
+                          return _buildResultCard(result);
+                        },
+                      ),
+                    ],
+
+                    const SizedBox(height: 80),
+                  ],
                 ),
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final result = _searchResults[index];
-                  return _buildResultCard(result);
-                },
               );
             },
           ),
         ),
-        
       ],
     );
   }
@@ -1211,6 +1282,65 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtistSearchItem(String name, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16.0),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.grey.shade700,
+            backgroundImage: NetworkImage(imageUrl),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 80,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlbumSearchItem(String name, String imageUrl) {
+    return Container(
+      width: 120,
+      margin: const EdgeInsets.only(right: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[800],
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
