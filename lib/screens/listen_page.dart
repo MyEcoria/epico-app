@@ -368,7 +368,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final track = snapshot.data![index];
-                          debugPrint('track: $track');
                           return _buildAlbumCard(
                             track['title'] ?? 'Unknown Title',
                             track['cover'] ?? 'assets/caca.jpg',
@@ -1110,7 +1109,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: TextField(
@@ -1118,6 +1116,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       hintText: "Search songs, artist, album or playlist",
                       hintStyle: TextStyle(color: Colors.grey),
                       border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.white70),
                     ),
                     style: const TextStyle(color: Colors.white),
                     onChanged: (query) async {
@@ -1125,9 +1124,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       if (query.isNotEmpty) {
                         debugPrint(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
-                        debugPrint(results.toString());
+                        debugPrint("Search API Response: $results");
                         setState(() {
-                          _searchResults = results;
+                          _searchResults = [results]; // Wrapping the response in a list
                         });
                       } else {
                         setState(() {
@@ -1141,52 +1140,176 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             ],
           ),
         ),
-        
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Search results",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        
+
         Expanded(
           child: StatefulBuilder(
             builder: (context, setStateSB) {
               Future<void>.delayed(const Duration(seconds: 2), () async {
-                if (_searchResults.any((e) => e['downloaded'] == false)) {
+                if (_searchResults.isNotEmpty && 
+                    _searchResults.first.containsKey("songsArray") &&
+                    (_searchResults.first["songsArray"] as List).any((e) => e['downloaded'] == false)) {
                   if (mounted) setStateSB(() {});
                 }
                 var results = await MusicApiService().getSearch(authCookie!, _lastQuery);
                 setState(() {
-                  _searchResults = results;
+                  _searchResults = [results];
                 });
               });
-              return GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+              
+              debugPrint('Search Results: $_searchResults');
+              
+              // Extract different types of results from the API response
+              List<Map<String, dynamic>> songs = [];
+              List<Map<String, dynamic>> artists = [];
+              List<Map<String, dynamic>> albums = [];
+              
+              if (_searchResults.isNotEmpty) {
+                final response = _searchResults.first;
+                
+                // Extract songs from songsArray
+                if (response.containsKey("songsArray")) {
+                  songs = (response["songsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+                
+                // Extract artists from artistsArray
+                if (response.containsKey("artistsArray")) {
+                  artists = (response["artistsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+                
+                // Extract albums from albumsArray
+                if (response.containsKey("albumsArray")) {
+                  albums = (response["albumsArray"] as List<dynamic>)
+                      .map((item) => item as Map<String, dynamic>)
+                      .toList();
+                }
+              }
+              
+              debugPrint('Songs: ${songs.length}');
+              debugPrint('Artists: ${artists.length}');
+              debugPrint('Albums: ${albums.length}');
+              
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Artists Section
+                    if (artists.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Artists",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 120,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: artists.length,
+                          itemBuilder: (context, index) {
+                            final artist = artists[index];
+                            return _buildArtistSearchItem(
+                              artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
+                              artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    
+                    // Albums Section
+                    if (albums.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Albums",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 160,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: albums.length,
+                          itemBuilder: (context, index) {
+                            final album = albums[index];
+                            return _buildAlbumSearchItem(
+                              album['title'] ?? album['name'] ?? 'Unknown Album',
+                              album['cover'] ?? 'https://via.placeholder.com/150',
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    
+                    // Songs Section
+                    if (songs.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                        child: Text(
+                          "Songs",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: songs.length,
+                        itemBuilder: (context, index) {
+                          final result = songs[index];
+                          return _buildResultCard(result);
+                        },
+                      ),
+                    ],
+                    
+                    // Show message if no results
+                    if (songs.isEmpty && artists.isEmpty && albums.isEmpty && _searchResults.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Text(
+                            "No results found",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    
+                    const SizedBox(height: 80),
+                  ],
                 ),
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final result = _searchResults[index];
-                  return _buildResultCard(result);
-                },
               );
             },
           ),
         ),
-        
       ],
     );
   }
@@ -1211,6 +1334,65 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtistSearchItem(String name, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16.0),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.grey.shade700,
+            backgroundImage: NetworkImage(imageUrl),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 80,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlbumSearchItem(String name, String imageUrl) {
+    return Container(
+      width: 120,
+      margin: const EdgeInsets.only(right: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[800],
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
