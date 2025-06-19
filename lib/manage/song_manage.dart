@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'api_manage.dart';
 
 class SongManager {
@@ -253,44 +255,57 @@ class SongManager {
 
   @pragma('vm:entry-point')
   void _handleNotificationResponse(NotificationResponse response) {
-    switch (response.actionId) {
-      case 'previous':
-        playLastFromQueue();
-        break;
-      case 'play':
-        if (_isPlaying) {
-          _audioPlayer.pause();
-          _isPlaying = false;
-        } else {
-          _audioPlayer.resume();
-          _isPlaying = true;
-        }
-        _showMediaNotification();
-        break;
-      case 'next':
-        playNextInQueue();
-        break;
+    if (response.actionId == 'play') {
+      if (_isPlaying) {
+        _audioPlayer.pause();
+        _isPlaying = false;
+      } else {
+        _audioPlayer.resume();
+        _isPlaying = true;
+      }
+      _showMediaNotification();
     }
   }
 
+  Future<ByteArrayAndroidBitmap?> _downloadAlbumArt(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return ByteArrayAndroidBitmap.fromBase64String(
+            base64Encode(response.bodyBytes));
+      }
+    } catch (_) {
+      // ignore errors and fall back to no image
+    }
+    return null;
+  }
+
   Future<void> _showMediaNotification() async {
+    final albumArt = _currentPictureUrl != null
+        ? await _downloadAlbumArt(_currentPictureUrl!)
+        : null;
+
+    final style = albumArt != null
+        ? BigPictureStyleInformation(albumArt, hideExpandedLargeIcon: true)
+        : const MediaStyleInformation();
+
     final androidDetails = AndroidNotificationDetails(
       _notificationChannel,
       'Media Playback',
       channelDescription: 'Control music playback',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.low,
+      priority: Priority.low,
       showWhen: false,
       ongoing: true,
-      styleInformation: const MediaStyleInformation(),
+      enableVibration: false,
+      largeIcon: albumArt,
+      styleInformation: style,
       actions: <AndroidNotificationAction>[
-        const AndroidNotificationAction('previous', 'Prev'),
         AndroidNotificationAction('play', _isPlaying ? 'Pause' : 'Play'),
-        const AndroidNotificationAction('next', 'Next'),
       ],
     );
 
-    const iosDetails = DarwinNotificationDetails();
+    final iosDetails = DarwinNotificationDetails(presentSound: false);
 
     final notificationDetails = NotificationDetails(
       android: androidDetails,
