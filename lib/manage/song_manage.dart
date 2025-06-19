@@ -9,11 +9,14 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'api_manage.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -25,6 +28,13 @@ class SongManager {
 
   final List<Map<String, dynamic>> _queue = [];
   static int _queueIndex = 0;
+
+  SongManager() {
+    _initNotifications();
+    _audioPlayer.onPositionChanged.listen((pos) {
+      _updateNotificationProgress(pos);
+    });
+  }
 
   AudioPlayer getAudioPlayer() {
     return _audioPlayer;
@@ -76,6 +86,63 @@ class SongManager {
   void clearQueue() {
     _queue.clear();
     _queueIndex = 0;
+  }
+
+  Future<void> _initNotifications() async {
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: android);
+    await _notifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (details) {
+        if (details.actionId == 'play_pause') {
+          final state = getSongState();
+          togglePlaySong(
+            name: state['name'] ?? '',
+            description: state['description'] ?? '',
+            songUrl: state['songUrl'] ?? '',
+            pictureUrl: state['pictureUrl'] ?? '',
+            artist: state['artist'] ?? '',
+            songId: state['songId'] ?? '',
+          );
+        } else if (details.actionId == 'next') {
+          playNextInQueue();
+        }
+      },
+    );
+  }
+
+  Future<AndroidBitmap<Object>> _fetchBitmap(String url) async {
+    final bytes = (await NetworkAssetBundle(Uri.parse(url)).load(url)).buffer.asUint8List();
+    return ByteArrayAndroidBitmap(bytes);
+  }
+
+  Future<void> _showNotification(Duration position) async {
+    if (_currentSongName == null) return;
+    AndroidBitmap<Object>? bitmap;
+    if (_currentPictureUrl != null && _currentPictureUrl!.isNotEmpty) {
+      bitmap = await _fetchBitmap(_currentPictureUrl!);
+    }
+    final androidDetails = AndroidNotificationDetails(
+      'player',
+      'Music Player',
+      channelDescription: 'Control current playback',
+      styleInformation: bitmap != null
+          ? BigPictureStyleInformation(bitmap, largeIcon: bitmap)
+          : null,
+      showProgress: true,
+      maxProgress: _audioPlayer.duration?.inMilliseconds ?? 0,
+      progress: position.inMilliseconds,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction('play_pause', _isPlaying ? 'Pause' : 'Play'),
+        AndroidNotificationAction('next', 'Next'),
+      ],
+    );
+    final details = NotificationDetails(android: androidDetails);
+    await _notifications.show(0, _currentSongName, _currentArtist, details);
+  }
+
+  void _updateNotificationProgress(Duration pos) {
+    _showNotification(pos);
   }
 
   Future<void> playNextInQueue() async {
@@ -159,10 +226,12 @@ class SongManager {
         if (_isPlaying) {
           await _audioPlayer.pause();
           _isPlaying = false;
+          _showNotification(await _audioPlayer.getCurrentPosition() ?? Duration.zero);
           return;
         } else {
           await _audioPlayer.resume();
           _isPlaying = true;
+          _showNotification(await _audioPlayer.getCurrentPosition() ?? Duration.zero);
           return;
         }
       }
@@ -180,7 +249,8 @@ class SongManager {
         if (authCookie != null) {
           final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
           await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
-        _isPlaying = true;
+          _isPlaying = true;
+          _showNotification(Duration.zero);
 
         } else {
           throw Exception('Auth cookie is null');
@@ -206,7 +276,7 @@ class SongManager {
             final pubKey = await MusicApiService().createSongAuth(songId, authCookie);
             await _audioPlayer.play(UrlSource('$songUrl?token=${pubKey['token']}'));
           _isPlaying = true;
-
+          _showNotification(Duration.zero);
           } else {
             throw Exception('Auth cookie is null');
           }
