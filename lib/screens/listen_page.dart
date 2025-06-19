@@ -1225,7 +1225,18 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             return _buildArtistSearchItem(
                               artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
-                              artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
+                              (() {
+                                const defaultUrl = 'https://via.placeholder.com/150';
+                                final pictureUrl = artist['picture'] as String?;
+                                final coverUrl = artist['cover'] as String?;
+                                if (coverUrl != null && coverUrl.contains('/cover/')) {
+                                  final match = RegExp(r'/cover/([^/]+)/').firstMatch(coverUrl);
+                                  if (match != null) {
+                                    return 'https://cdn-images.dzcdn.net/images/artist/${match.group(1)}/500x500-000000-80-0-0.jpg';
+                                  }
+                                }
+                                return pictureUrl ?? coverUrl ?? defaultUrl;
+                              })(),
                             );
                           },
                         ),
