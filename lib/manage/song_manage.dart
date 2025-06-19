@@ -9,15 +9,13 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'api_manage.dart';
 
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final AwesomeNotifications _notifications = AwesomeNotifications();
   static const int _notificationId = 0;
   static const String _notificationChannel = 'media_channel';
   static bool playing = false;
@@ -250,93 +248,82 @@ class SongManager {
 
   void dispose() {
     _audioPlayer.dispose();
-    _notificationsPlugin.cancel(_notificationId);
+    _notifications.cancel(_notificationId);
   }
 
   @pragma('vm:entry-point')
-  void _handleNotificationResponse(NotificationResponse response) {
-    if (response.actionId == 'play') {
-      if (_isPlaying) {
-        _audioPlayer.pause();
-        _isPlaying = false;
-      } else {
-        _audioPlayer.resume();
-        _isPlaying = true;
-      }
-      _showMediaNotification();
+  Future<void> _onActionReceived(ReceivedAction action) async {
+    switch (action.buttonKey) {
+      case 'play':
+        if (_isPlaying) {
+          await _audioPlayer.pause();
+          _isPlaying = false;
+        } else {
+          await _audioPlayer.resume();
+          _isPlaying = true;
+        }
+        break;
+      case 'next':
+        await playNextInQueue();
+        break;
+      case 'previous':
+        await playLastFromQueue();
+        break;
     }
-  }
-
-  Future<ByteArrayAndroidBitmap?> _downloadAlbumArt(String url) async {
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return ByteArrayAndroidBitmap.fromBase64String(
-            base64Encode(response.bodyBytes));
-      }
-    } catch (_) {
-      // ignore errors and fall back to no image
-    }
-    return null;
+    await _showMediaNotification();
   }
 
   Future<void> _showMediaNotification() async {
-    final albumArt = _currentPictureUrl != null
-        ? await _downloadAlbumArt(_currentPictureUrl!)
-        : null;
-
-    final style = albumArt != null
-        ? BigPictureStyleInformation(albumArt, hideExpandedLargeIcon: true)
-        : const MediaStyleInformation();
-
-    final androidDetails = AndroidNotificationDetails(
-      _notificationChannel,
-      'Media Playback',
-      channelDescription: 'Control music playback',
-      importance: Importance.low,
-      priority: Priority.low,
-      showWhen: false,
-      ongoing: true,
-      enableVibration: false,
-      largeIcon: albumArt,
-      styleInformation: style,
-      actions: <AndroidNotificationAction>[
-        AndroidNotificationAction('play', _isPlaying ? 'Pause' : 'Play'),
+    await _notifications.createNotification(
+      content: NotificationContent(
+        id: _notificationId,
+        channelKey: _notificationChannel,
+        title: _currentSongName ?? 'Playing',
+        body: _currentArtist ?? '',
+        bigPicture: _currentPictureUrl,
+        largeIcon: _currentPictureUrl,
+        notificationLayout: NotificationLayout.MediaPlayer,
+        autoDismissible: false,
+        displayOnForeground: true,
+        displayOnBackground: true,
+      ),
+      actionButtons: [
+        NotificationActionButton(
+          key: 'previous',
+          label: 'Prev',
+          showInCompactView: true,
+        ),
+        NotificationActionButton(
+          key: 'play',
+          label: _isPlaying ? 'Pause' : 'Play',
+          showInCompactView: true,
+        ),
+        NotificationActionButton(
+          key: 'next',
+          label: 'Next',
+          showInCompactView: true,
+        ),
       ],
-    );
-
-    final iosDetails = DarwinNotificationDetails(presentSound: false);
-
-    final notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notificationsPlugin.show(
-      _notificationId,
-      _currentSongName ?? 'Playing',
-      _currentArtist ?? '',
-      notificationDetails,
     );
   }
 
   Future<void> _initNotifications() async {
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(
-      android: androidInit,
-      iOS: iosInit,
-    );
-    await _notificationsPlugin.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: _handleNotificationResponse,
+    await _notifications.initialize(
+      null,
+      [
+        NotificationChannel(
+          channelKey: _notificationChannel,
+          channelName: 'Media Playback',
+          channelDescription: 'Control music playback',
+          importance: NotificationImportance.Low,
+          playSound: false,
+          enableVibration: false,
+        ),
+      ],
     );
 
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
+    _notifications.setListeners(
+      onActionReceivedMethod: _onActionReceived,
+    );
   }
 }

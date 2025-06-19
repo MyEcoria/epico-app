@@ -41,7 +41,7 @@ dependencies:
   flutter_profile_picture: ^2.0.0
   shared_preferences: ^2.5.2
   palette_generator: ^0.3.3
-  flutter_local_notifications: ^17.2.3
+  awesome_notifications: ^0.10.1
   http: ^1.2.1
   
 
