@@ -334,4 +334,34 @@ class MusicApiService {
       throw Exception('Error create auth user: $e');
     }
   }
+
+  Future<Map<String, dynamic>> getAlbumInfo(String albumId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/album/$albumId'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to load album info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching album info: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getArtistInfo(String artistId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/artist/$artistId'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to load artist info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching artist info: $e');
+    }
+  }
 }

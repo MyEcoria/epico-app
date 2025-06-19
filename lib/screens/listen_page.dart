@@ -22,6 +22,9 @@ import '../manage/cache_manage.dart';
 import 'library_page.dart';
 import 'package:flutter/cupertino.dart';
 import '../theme.dart';
+import '../manage/navigation_helper.dart';
+import 'album_info_page.dart';
+import 'artist_info_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1218,6 +1221,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final artist = artists[index];
                             return _buildArtistSearchItem(
+                              artist['id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
                               artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
                             );
@@ -1248,6 +1252,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final album = albums[index];
                             return _buildAlbumSearchItem(
+                              album['id']?.toString() ?? album['ALB_ID']?.toString() ?? '',
                               album['title'] ?? album['name'] ?? 'Unknown Album',
                               album['cover'] ?? 'https://via.placeholder.com/150',
                             );
@@ -1340,42 +1345,57 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildArtistSearchItem(String name, String imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.grey.shade700,
-            backgroundImage: NetworkImage(imageUrl),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 80,
-            child: Text(
-              name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+  Widget _buildArtistSearchItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.grey.shade700,
+              backgroundImage: NetworkImage(imageUrl),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAlbumSearchItem(String name, String imageUrl) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
+  Widget _buildAlbumSearchItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          NavigationHelper.pushFade(
+              context,
+              AlbumInfoPage(albumId: id, songManager: widget.songManager));
+        }
+      },
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: Colors.grey[800],
               image: DecorationImage(
@@ -1395,6 +1415,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             overflow: TextOverflow.ellipsis,
           ),
         ],
+        ),
       ),
     );
   }
