@@ -411,4 +411,20 @@ class MusicApiService {
       throw Exception('Error fetching album tracks: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getArtistTracks(String artistId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/artist_tracks/$artistId'),
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load artist tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching artist tracks: $e');
+    }
+  }
 }

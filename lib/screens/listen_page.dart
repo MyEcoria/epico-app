@@ -120,6 +120,8 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
   int _currentIndex = 0;
+  String? _selectedAlbumId;
+  String? _selectedArtistId; // Ajout pour navigation artiste
   final ValueNotifier<bool> _isSearchResults = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isPageSearch = ValueNotifier<bool>(false);
 
@@ -172,52 +174,61 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     bool isPlaying = widget.songManager.isPlaying();
     final songState = widget.songManager.getSongState();
 
+    Widget mainContent;
+    if (_selectedAlbumId != null) {
+      mainContent = AlbumInfoPage(albumId: _selectedAlbumId!, songManager: widget.songManager);
+    } else if (_selectedArtistId != null) {
+      mainContent = ArtistInfoPage(artistId: _selectedArtistId!, songManager: widget.songManager);
+    } else {
+      mainContent = SafeArea(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _isPageSearch,
+          builder: (context, isPageSearch, child) {
+            Widget page = _currentIndex == 0
+              ? SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 24),
+                        _buildRecentlyPlayed(),
+                        const SizedBox(height: 24),
+                        _buildFlowSection(),
+                        const SizedBox(height: 24),
+                        _buildMixesForYou(),
+                        const SizedBox(height: 24),
+                        _buildArtistsYouFollow(),
+                        const SizedBox(height: 24),
+                        _buildNewReleases(),
+                      ],
+                    ),
+                  ),
+                )
+              : _currentIndex == 1
+                ? ValueListenableBuilder<bool>(
+                    valueListenable: _isSearchResults,
+                    builder: (context, isSearchResults, child) {
+                      return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
+                    },
+                  )
+                : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
+            );
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          SafeArea(
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isPageSearch,
-              builder: (context, isPageSearch, child) {
-                Widget page = _currentIndex == 0
-                  ? SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeader(),
-                            const SizedBox(height: 24),
-                            _buildRecentlyPlayed(),
-                            const SizedBox(height: 24),
-                            _buildFlowSection(),
-                            const SizedBox(height: 24),
-                            _buildMixesForYou(),
-                            const SizedBox(height: 24),
-                            _buildArtistsYouFollow(),
-                            const SizedBox(height: 24),
-                            _buildNewReleases(),
-                          ],
-                        ),
-                      ),
-                    )
-                  : _currentIndex == 1
-                    ? ValueListenableBuilder<bool>(
-                        valueListenable: _isSearchResults,
-                        builder: (context, isSearchResults, child) {
-                          return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
-                        },
-                      )
-                    : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
-                );
-              },
-            ),
-          ),
+          mainContent,
           Positioned(
             left: 0,
             right: 0,
@@ -942,27 +953,21 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       onTap: () {
         setState(() {
           _currentIndex = index;
-          // Only use _isPageSearch for toggling between home and search
-          if (index <= 1) {
-            _isPageSearch.value = (index == 1);
-          }
+          _selectedAlbumId = null;
+          _selectedArtistId = null; // Ferme la page artiste si on change d'onglet
         });
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? kAccentColor : Colors.white70,
-            size: 24,
-          ),
+          Icon(icon, color: isSelected ? Colors.white : Colors.white54),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? kAccentColor : Colors.white70,
+              color: isSelected ? Colors.white : Colors.white54,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
           ),
         ],
@@ -1214,7 +1219,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final artist = artists[index];
                             return _buildArtistSearchItem(
-                              artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
+                              artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? artist['id']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
                               (() {
                                 const defaultUrl = 'https://via.placeholder.com/150';
@@ -1327,7 +1332,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     return GestureDetector(
       onTap: () {
         if (id.isNotEmpty) {
-          NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
+          setState(() {
+            _selectedArtistId = id;
+          });
         }
       },
       child: Padding(
@@ -1360,7 +1367,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     return GestureDetector(
       onTap: () {
         if (id.isNotEmpty) {
-          NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
+          setState(() {
+            _selectedArtistId = id;
+          });
         }
       },
       child: Padding(
@@ -1393,9 +1402,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     return GestureDetector(
       onTap: () {
         if (id.isNotEmpty) {
-          NavigationHelper.pushFade(
-              context,
-              AlbumInfoPage(albumId: id, songManager: widget.songManager));
+          setState(() {
+            _selectedAlbumId = id;
+          });
         }
       },
       child: Container(
@@ -1407,25 +1416,21 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
             Container(
               height: 120,
               decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[800],
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
+            const SizedBox(height: 8),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 14, color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
         ),
       ),
     );

@@ -8,7 +8,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AlbumInfoPage extends StatefulWidget {
   final String albumId;
   final SongManager songManager;
-  const AlbumInfoPage({Key? key, required this.albumId, required this.songManager}) : super(key: key);
+  final VoidCallback? onBack;
+  const AlbumInfoPage({Key? key, required this.albumId, required this.songManager, this.onBack}) : super(key: key);
 
   @override
   State<AlbumInfoPage> createState() => _AlbumInfoPageState();
@@ -67,13 +68,12 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
       // Adapter selon la structure réelle des données retournées par l'API
       return {
         'title': track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-        'song': 'http://localhost:8000/music/${track['SNG_ID']}.mp3',
+        'song': 'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
         'cover': _getAlbumCoverUrl(),
         'auteur': track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
         'song_id': track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
       };
     }).toList();
-    
     debugPrint('Playlist to play: $playlist');
     
     if (playlist.isNotEmpty) {
@@ -101,6 +101,13 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     );
   }
 
+  String _formatDuration(String duration) {
+    int seconds = int.tryParse(duration) ?? 0;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return '${minutes}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isPlaying = widget.songManager.isPlaying();
@@ -115,7 +122,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
         children: [
           // Contenu principal avec padding bottom pour éviter le chevauchement
           Padding(
-            padding: const EdgeInsets.only(bottom: 80), // Espace pour le mini player
+            padding: const EdgeInsets.all(0), // Suppression du padding bottom
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _album == null
@@ -208,70 +215,93 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              ...(_album_tracks!.asMap().entries.map((entry) {
-                                final index = entry.key + 1;
-                                final track = entry.value;
-                                return ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: Container(
-                                    width: 30,
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      '$index',
-                                      style: const TextStyle(color: Colors.white70),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                    style: const TextStyle(color: Colors.white),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    track['ART_NAME'] ?? track['artist'] ?? 'Unknown Artist',
-                                    style: const TextStyle(color: Colors.white54),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  onTap: () {
-                                    // Play specific track
-                                    final playlist = _album_tracks!.map<Map<String, dynamic>>((t) {
-                                      return {
-                                        'title': t['SNG_TITLE'] ?? t['title'] ?? 'Unknown',
-                                        'song': 'http://localhost:8000/music/${t['SNG_ID']}.mp3',
-                                        'cover': _getAlbumCoverUrl(),
-                                        'auteur': t['ART_NAME'] ?? t['artist'] ?? _album?['ART_NAME'] ?? 'Unknown',
-                                        'song_id': t['SNG_ID'] ?? t['song_id'] ?? t['id'] ?? '',
-                                      };
-                                    }).toList();
-                                    
-                                    // Start from the selected track
-                                    widget.songManager.clearQueue();
-                                    for (int i = index - 1; i < playlist.length; i++) {
-                                      widget.songManager.addToQueue(
-                                        name: playlist[i]['title'],
-                                        description: 'From ${_album!["ALB_TITLE"] ?? "Album"}',
-                                        songUrl: playlist[i]['song'],
-                                        pictureUrl: playlist[i]['cover'],
-                                        artist: playlist[i]['auteur'],
-                                        songId: playlist[i]['song_id'],
-                                      );
-                                    }
-                                    
-                                    if (playlist.isNotEmpty) {
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _album_tracks!.length,
+                                itemBuilder: (context, index) {
+                                  final track = _album_tracks![index];
+                                  return GestureDetector(
+                                    onTap: () {
                                       widget.songManager.togglePlaySong(
-                                        name: playlist[index - 1]['title'],
-                                        description: 'From ${_album!["ALB_TITLE"] ?? "Album"}',
-                                        songUrl: playlist[index - 1]['song'],
-                                        pictureUrl: playlist[index - 1]['cover'],
-                                        artist: playlist[index - 1]['auteur'],
-                                        songId: playlist[index - 1]['song_id'],
+                                        name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                        description: '',
+                                        songUrl: 'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
+                                        pictureUrl: _getAlbumCoverUrl(),
+                                        artist: track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
+                                        songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
                                         instant: true,
                                       );
-                                    }
-                                  },
-                                );
-                              }).toList()),
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[900],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Cover Image
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: Image.network(
+                                              _getAlbumCoverUrl(),
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) =>
+                                                  Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    color: Colors.grey[700],
+                                                    child: const Icon(Icons.music_note,
+                                                        color: Colors.white54),
+                                                  ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          // Track Info
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
+                                                  style: const TextStyle(
+                                                    color: Colors.white54,
+                                                    fontSize: 12,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // Duration
+                                          Text(
+                                            _formatDuration(track['DURATION']?.toString() ?? track['dure']?.toString() ?? '0'),
+                                            style: const TextStyle(
+                                              color: Colors.white54,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ],
                         ),
