@@ -457,7 +457,6 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                           // Toggle the notifier value which will trigger a rebuild
                           bool liked = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
                           _isLikedNotifier.value = liked;
-                          debugPrint("isLiked2: ${_isLikedNotifier.value}");
                         },
                       );
                     },

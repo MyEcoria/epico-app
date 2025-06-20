@@ -223,7 +223,7 @@ GridView.builder(
           children: [
             Icon(
               icon,
-              color: kAccentColor,
+              color: const Color.fromRGBO(239, 84, 102, 1),
               size: 28,
             ),
             Text(

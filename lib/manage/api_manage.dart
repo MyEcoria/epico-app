@@ -228,15 +228,12 @@ class MusicApiService {
   }
 
   Future<Map<String, dynamic>> getSearch(String cookie, String name) async {
-    debugPrint("hello: $name");
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/search'),
         headers: {'Content-Type': 'application/json', 'token': cookie},
         body: json.encode({'name': name}),
       );
-      debugPrint("Search response: ${response.body}");
-      
       // Retourner l'objet complet au lieu d'une liste
       Map<String, dynamic> data = json.decode(response.body);
       return data;
@@ -246,7 +243,6 @@ class MusicApiService {
   }
 
   Future<Map<String, dynamic>> createLike(String songId, String token) async {
-    debugPrint("hello: $songId/$token");
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/liked'),
@@ -272,7 +268,6 @@ class MusicApiService {
       );
       if (response.statusCode == 200) {
         final rep = json.decode(response.body);
-        debugPrint("rep: $rep");
         if (rep["liked"] == "true") {
           return true;
         } else {
@@ -308,7 +303,6 @@ class MusicApiService {
         Uri.parse('$baseUrl/music/count-liked'),
         headers: {'Content-Type': 'application/json', 'token': token},
       );
-      debugPrint("response: ${response.body}");
       if (response.statusCode == 200) {
         return json.decode(response.body)["count"].toString();
       } else {
@@ -332,6 +326,105 @@ class MusicApiService {
       }
     } catch (e) {
       throw Exception('Error create auth user: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getAlbumInfo(String albumId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/album/$albumId'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to load album info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching album info: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getArtistInfo(String artistId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/artist/$artistId'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to load artist info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching artist info: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAlbumTracks(String albumId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/album_track/$albumId'),
+      );
+      if (response.statusCode == 200) {
+        dynamic data = json.decode(response.body);
+        debugPrint('Raw album tracks data: ${data.toString()}');
+        
+        // Vérifier si data est une Map ou une List
+        if (data is Map<String, dynamic>) {
+          // Si c'est une Map, chercher une clé qui contient les pistes
+          // Les clés possibles peuvent être 'tracks', 'data', 'songs', etc.
+          if (data.containsKey('tracks') && data['tracks'] is List) {
+            List<dynamic> tracks = data['tracks'];
+            return tracks.map((item) => item as Map<String, dynamic>).toList();
+          } else if (data.containsKey('data') && data['data'] is List) {
+            List<dynamic> tracks = data['data'];
+            return tracks.map((item) => item as Map<String, dynamic>).toList();
+          } else if (data.containsKey('songs') && data['songs'] is List) {
+            List<dynamic> tracks = data['songs'];
+            return tracks.map((item) => item as Map<String, dynamic>).toList();
+          } else {
+            // Si aucune clé connue n'est trouvée, convertir les valeurs de la Map en List
+            List<Map<String, dynamic>> tracks = [];
+            data.forEach((key, value) {
+              if (value is Map<String, dynamic>) {
+                tracks.add(value);
+              } else if (value is List) {
+                for (var item in value) {
+                  if (item is Map<String, dynamic>) {
+                    tracks.add(item);
+                  }
+                }
+              }
+            });
+            return tracks;
+          }
+        } else if (data is List) {
+          // Si c'est déjà une List, la traiter normalement
+          return data.map((item) => item as Map<String, dynamic>).toList();
+        } else {
+          debugPrint('Unexpected data type: ${data.runtimeType}');
+          return [];
+        }
+      } else {
+        throw Exception('Failed to load album tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching album tracks: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getArtistTracks(String artistId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/artist_tracks/$artistId'),
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load artist tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching artist tracks: $e');
     }
   }
 }

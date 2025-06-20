@@ -114,6 +114,7 @@ class SongManager {
   Future<void> lunchPlaylist(List<Map<String, dynamic>> playlist) async {
     clearQueue();
     for (var element in playlist) {
+      debugPrint('Adding song to queue: $element');
       if (element['title'] != null && element['song'] != null &&
         element['cover'] != null && element['auteur'] != null && element['song_id'] != null &&
         element['title'] is String && element['song'] is String &&

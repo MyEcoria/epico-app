@@ -22,6 +22,9 @@ import '../manage/cache_manage.dart';
 import 'library_page.dart';
 import 'package:flutter/cupertino.dart';
 import '../theme.dart';
+import '../manage/navigation_helper.dart';
+import 'album_info_page.dart';
+import 'artist_info_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -117,6 +120,8 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? authCookie;
   int _currentIndex = 0;
+  String? _selectedAlbumId;
+  String? _selectedArtistId; // Ajout pour navigation artiste
   final ValueNotifier<bool> _isSearchResults = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isPageSearch = ValueNotifier<bool>(false);
 
@@ -169,52 +174,61 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     bool isPlaying = widget.songManager.isPlaying();
     final songState = widget.songManager.getSongState();
 
+    Widget mainContent;
+    if (_selectedAlbumId != null) {
+      mainContent = AlbumInfoPage(albumId: _selectedAlbumId!, songManager: widget.songManager);
+    } else if (_selectedArtistId != null) {
+      mainContent = ArtistInfoPage(artistId: _selectedArtistId!, songManager: widget.songManager);
+    } else {
+      mainContent = SafeArea(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _isPageSearch,
+          builder: (context, isPageSearch, child) {
+            Widget page = _currentIndex == 0
+              ? SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 24),
+                        _buildRecentlyPlayed(),
+                        const SizedBox(height: 24),
+                        _buildFlowSection(),
+                        const SizedBox(height: 24),
+                        _buildMixesForYou(),
+                        const SizedBox(height: 24),
+                        _buildArtistsYouFollow(),
+                        const SizedBox(height: 24),
+                        _buildNewReleases(),
+                      ],
+                    ),
+                  ),
+                )
+              : _currentIndex == 1
+                ? ValueListenableBuilder<bool>(
+                    valueListenable: _isSearchResults,
+                    builder: (context, isSearchResults, child) {
+                      return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
+                    },
+                  )
+                : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
+            );
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          SafeArea(
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isPageSearch,
-              builder: (context, isPageSearch, child) {
-                Widget page = _currentIndex == 0
-                  ? SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeader(),
-                            const SizedBox(height: 24),
-                            _buildRecentlyPlayed(),
-                            const SizedBox(height: 24),
-                            _buildFlowSection(),
-                            const SizedBox(height: 24),
-                            _buildMixesForYou(),
-                            const SizedBox(height: 24),
-                            _buildArtistsYouFollow(),
-                            const SizedBox(height: 24),
-                            _buildNewReleases(),
-                          ],
-                        ),
-                      ),
-                    )
-                  : _currentIndex == 1
-                    ? ValueListenableBuilder<bool>(
-                        valueListenable: _isSearchResults,
-                        builder: (context, isSearchResults, child) {
-                          return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
-                        },
-                      )
-                    : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
-                );
-              },
-            ),
-          ),
+          mainContent,
           Positioned(
             left: 0,
             right: 0,
@@ -939,27 +953,21 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       onTap: () {
         setState(() {
           _currentIndex = index;
-          // Only use _isPageSearch for toggling between home and search
-          if (index <= 1) {
-            _isPageSearch.value = (index == 1);
-          }
+          _selectedAlbumId = null;
+          _selectedArtistId = null; // Ferme la page artiste si on change d'onglet
         });
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? kAccentColor : Colors.white70,
-            size: 24,
-          ),
+          Icon(icon, color: isSelected ? Colors.white : Colors.white54),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? kAccentColor : Colors.white70,
+              color: isSelected ? Colors.white : Colors.white54,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
           ),
         ],
@@ -1039,6 +1047,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 itemBuilder: (context, index) {
                 final artist = artists[index];
                 return _buildArtistItem(
+                  artist['id'] ?? '',
                   artist['auteur'] ?? 'Unknown',
                   artist['cover'] ?? 'assets/default_artist.jpg',
                 );
@@ -1122,9 +1131,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     onChanged: (query) async {
                       _lastQuery = query;
                       if (query.isNotEmpty) {
-                        debugPrint(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
-                        debugPrint("Search API Response: $results");
                         setState(() {
                           _searchResults = [results]; // Wrapping the response in a list
                         });
@@ -1156,7 +1163,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 });
               });
               
-              debugPrint('Search Results: $_searchResults');
               
               // Extract different types of results from the API response
               List<Map<String, dynamic>> songs = [];
@@ -1187,11 +1193,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       .toList();
                 }
               }
-              
-              debugPrint('Songs: ${songs.length}');
-              debugPrint('Artists: ${artists.length}');
-              debugPrint('Albums: ${albums.length}');
-              
               return SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1218,8 +1219,20 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final artist = artists[index];
                             return _buildArtistSearchItem(
+                              artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? artist['id']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
-                              artist['picture'] ?? artist['cover'] ?? 'https://via.placeholder.com/150',
+                              (() {
+                                const defaultUrl = 'https://via.placeholder.com/150';
+                                final pictureUrl = artist['picture'] as String?;
+                                final coverUrl = artist['cover'] as String?;
+                                if (coverUrl != null && coverUrl.contains('/cover/')) {
+                                  final match = RegExp(r'/cover/([^/]+)/').firstMatch(coverUrl);
+                                  if (match != null) {
+                                    return 'https://cdn-images.dzcdn.net/images/artist/${match.group(1)}/500x500-000000-80-0-0.jpg';
+                                  }
+                                }
+                                return pictureUrl ?? coverUrl ?? defaultUrl;
+                              })(),
                             );
                           },
                         ),
@@ -1248,6 +1261,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final album = albums[index];
                             return _buildAlbumSearchItem(
+                              album['album_id']?.toString() ?? album['ALB_ID']?.toString() ?? '',
                               album['title'] ?? album['name'] ?? 'Unknown Album',
                               album['cover'] ?? 'https://via.placeholder.com/150',
                             );
@@ -1314,87 +1328,110 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     );
   }
 
-  Widget _buildArtistItem(String name, String imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.grey.shade700,
-            backgroundImage: NetworkImage(imageUrl),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 80,
-            child: Text(
-              name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+  Widget _buildArtistItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          setState(() {
+            _selectedArtistId = id;
+          });
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.grey.shade700,
+              backgroundImage: NetworkImage(imageUrl),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArtistSearchItem(String name, String imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.grey.shade700,
-            backgroundImage: NetworkImage(imageUrl),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 80,
-            child: Text(
-              name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlbumSearchItem(String name, String imageUrl) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[800],
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArtistSearchItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          setState(() {
+            _selectedArtistId = id;
+          });
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.grey.shade700,
+              backgroundImage: NetworkImage(imageUrl),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlbumSearchItem(String id, String name, String imageUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (id.isNotEmpty) {
+          setState(() {
+            _selectedAlbumId = id;
+          });
+        }
+      },
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 14, color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
