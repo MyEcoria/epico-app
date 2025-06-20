@@ -1126,9 +1126,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                     onChanged: (query) async {
                       _lastQuery = query;
                       if (query.isNotEmpty) {
-                        debugPrint(query);
                         var results = await MusicApiService().getSearch(authCookie!, query);
-                        debugPrint("Search API Response: $results");
                         setState(() {
                           _searchResults = [results]; // Wrapping the response in a list
                         });
@@ -1160,7 +1158,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 });
               });
               
-              debugPrint('Search Results: $_searchResults');
               
               // Extract different types of results from the API response
               List<Map<String, dynamic>> songs = [];
@@ -1191,11 +1188,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       .toList();
                 }
               }
-              
-              debugPrint('Songs: ${songs.length}');
-              debugPrint('Artists: ${artists.length}');
-              debugPrint('Albums: ${albums.length}');
-              
               return SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1221,7 +1213,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemCount: artists.length,
                           itemBuilder: (context, index) {
                             final artist = artists[index];
-                            debugPrint("Artist: $artist");
                             return _buildArtistSearchItem(
                               artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? '',
                               artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
@@ -1264,7 +1255,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemCount: albums.length,
                           itemBuilder: (context, index) {
                             final album = albums[index];
-                            debugPrint("Album: $album");
                             return _buildAlbumSearchItem(
                               album['album_id']?.toString() ?? album['ALB_ID']?.toString() ?? '',
                               album['title'] ?? album['name'] ?? 'Unknown Album',
@@ -1369,7 +1359,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   Widget _buildArtistSearchItem(String id, String name, String imageUrl) {
     return GestureDetector(
       onTap: () {
-        debugPrint("Tapped on artist: $name with ID: $id");
         if (id.isNotEmpty) {
           NavigationHelper.pushFade(context, ArtistInfoPage(artistId: id));
         }

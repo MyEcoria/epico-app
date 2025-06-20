@@ -36,7 +36,6 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Artist Info: $_artist");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Artist info'),
