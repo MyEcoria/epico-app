@@ -6,11 +6,13 @@ import '../theme.dart';
 class LikedSongsPage extends StatefulWidget {
   final SongManager songManager;
   final String authCookie;
+  final VoidCallback onBack;
 
   const LikedSongsPage({
     Key? key,
     required this.songManager,
     required this.authCookie,
+    required this.onBack,
   }) : super(key: key);
 
   @override
@@ -71,6 +73,10 @@ class _LikedSongsPageState extends State<LikedSongsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: widget.onBack,
+        ),
         title: const Text('Liked Songs'),
         backgroundColor: Colors.black,
       ),

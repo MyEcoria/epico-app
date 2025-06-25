@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';
-import '../manage/navigation_helper.dart';
 import '../theme.dart';
-import 'artist_info_page.dart';
 
 class ArtistsPage extends StatefulWidget {
   final SongManager songManager;
   final String authCookie;
+  final VoidCallback onBack;
+  final Function(String id) onOpenArtist;
 
   const ArtistsPage({
     Key? key,
     required this.songManager,
     required this.authCookie,
+    required this.onBack,
+    required this.onOpenArtist,
   }) : super(key: key);
 
   @override
@@ -46,10 +48,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
 
   void _openArtist(String id) {
     if (id.isNotEmpty) {
-      NavigationHelper.pushFade(
-        context,
-        ArtistInfoPage(artistId: id, songManager: widget.songManager),
-      );
+      widget.onOpenArtist(id);
     }
   }
 
@@ -57,6 +56,10 @@ class _ArtistsPageState extends State<ArtistsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: widget.onBack,
+        ),
         title: const Text('Artists'),
         backgroundColor: Colors.black,
       ),

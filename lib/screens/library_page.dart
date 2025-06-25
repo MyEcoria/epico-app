@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
 import '../theme.dart';
-import '../manage/navigation_helper.dart';
 import 'liked_songs_page.dart';
 import 'artists_page.dart';
 
 class LibraryPage extends StatefulWidget {
   final SongManager songManager;
   final String? authCookie;
+  final Function(String id) onArtistSelected;
 
-  const LibraryPage({Key? key, required this.songManager, this.authCookie}) : super(key: key);
+  const LibraryPage({Key? key, required this.songManager, this.authCookie, required this.onArtistSelected}) : super(key: key);
 
   @override
   _LibraryPageState createState() => _LibraryPageState();
@@ -21,6 +21,7 @@ class _LibraryPageState extends State<LibraryPage> {
   bool _isLoading = true;
   String _likedCount = '0';
   String _artistCount = '0';
+  int _pageIndex = 0; // 0 main, 1 liked songs, 2 artists
   
   @override
   void initState() {
@@ -95,6 +96,21 @@ class _LibraryPageState extends State<LibraryPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pageIndex == 1) {
+      return LikedSongsPage(
+        songManager: widget.songManager,
+        authCookie: widget.authCookie!,
+        onBack: () => setState(() => _pageIndex = 0),
+      );
+    } else if (_pageIndex == 2) {
+      return ArtistsPage(
+        songManager: widget.songManager,
+        authCookie: widget.authCookie!,
+        onBack: () => setState(() => _pageIndex = 0),
+        onOpenArtist: widget.onArtistSelected,
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -135,13 +151,9 @@ GridView.builder(
           subtitle: '$_likedCount songs',
           onTap: () {
             if (widget.authCookie != null) {
-              NavigationHelper.pushFade(
-                context,
-                LikedSongsPage(
-                  songManager: widget.songManager,
-                  authCookie: widget.authCookie!,
-                ),
-              );
+              setState(() {
+                _pageIndex = 1;
+              });
             }
           },
         );
@@ -166,13 +178,9 @@ GridView.builder(
           subtitle: '$_artistCount artists',
           onTap: () {
             if (widget.authCookie != null) {
-              NavigationHelper.pushFade(
-                context,
-                ArtistsPage(
-                  songManager: widget.songManager,
-                  authCookie: widget.authCookie!,
-                ),
-              );
+              setState(() {
+                _pageIndex = 2;
+              });
             }
           },
         );

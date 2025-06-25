@@ -214,7 +214,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
                     },
                   )
-                : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
+                : LibraryPage(
+                    songManager: widget.songManager,
+                    authCookie: authCookie,
+                    onArtistSelected: (id) {
+                      setState(() {
+                        _selectedArtistId = id;
+                      });
+                    },
+                  );
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),
