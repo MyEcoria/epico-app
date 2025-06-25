@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
+import '../manage/navigation_helper.dart';
+import 'liked_songs_page.dart';
+import 'artists_page.dart';
 
 class LibraryPage extends StatefulWidget {
   final SongManager songManager;
@@ -131,7 +133,17 @@ GridView.builder(
           icon: Icons.favorite,
           title: 'Liked Songs',
           subtitle: '$_likedCount songs',
-          onTap: () {},
+          onTap: () {
+            if (widget.authCookie != null) {
+              NavigationHelper.pushFade(
+                context,
+                LikedSongsPage(
+                  songManager: widget.songManager,
+                  authCookie: widget.authCookie!,
+                ),
+              );
+            }
+          },
         );
       case 1:
         return _buildCollectionCard(
@@ -152,7 +164,17 @@ GridView.builder(
           icon: Icons.person,
           title: 'Artists',
           subtitle: '$_artistCount artists',
-          onTap: () {},
+          onTap: () {
+            if (widget.authCookie != null) {
+              NavigationHelper.pushFade(
+                context,
+                ArtistsPage(
+                  songManager: widget.songManager,
+                  authCookie: widget.authCookie!,
+                ),
+              );
+            }
+          },
         );
       default:
         return Container();
