@@ -6,7 +6,14 @@ import '../theme.dart';
 class ArtistInfoPage extends StatefulWidget {
   final String artistId;
   final SongManager songManager;
-  const ArtistInfoPage({Key? key, required this.artistId, required this.songManager}) : super(key: key);
+  final VoidCallback onBack;
+
+  const ArtistInfoPage({
+    Key? key,
+    required this.artistId,
+    required this.songManager,
+    required this.onBack,
+  }) : super(key: key);
 
   @override
   State<ArtistInfoPage> createState() => _ArtistInfoPageState();
@@ -74,6 +81,10 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: widget.onBack,
+        ),
         title: const Text('Artist info'),
         backgroundColor: Colors.black,
       ),

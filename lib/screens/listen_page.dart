@@ -176,9 +176,25 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
 
     Widget mainContent;
     if (_selectedAlbumId != null) {
-      mainContent = AlbumInfoPage(albumId: _selectedAlbumId!, songManager: widget.songManager);
+      mainContent = AlbumInfoPage(
+        albumId: _selectedAlbumId!,
+        songManager: widget.songManager,
+        onBack: () {
+          setState(() {
+            _selectedAlbumId = null;
+          });
+        },
+      );
     } else if (_selectedArtistId != null) {
-      mainContent = ArtistInfoPage(artistId: _selectedArtistId!, songManager: widget.songManager);
+      mainContent = ArtistInfoPage(
+        artistId: _selectedArtistId!,
+        songManager: widget.songManager,
+        onBack: () {
+          setState(() {
+            _selectedArtistId = null;
+          });
+        },
+      );
     } else {
       mainContent = SafeArea(
         child: ValueListenableBuilder<bool>(
