@@ -60,6 +60,10 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     }
   }
 
+  Future<void> _refreshAlbum() async {
+    await _fetchAlbum();
+  }
+
   void _playAlbum() {
     if (_album_tracks == null || _album_tracks!.isEmpty) return;
     
@@ -161,7 +165,9 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                           ],
                         ),
                       )
-                    : SingleChildScrollView(
+                    : RefreshIndicator(
+                        onRefresh: _refreshAlbum,
+                        child: SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

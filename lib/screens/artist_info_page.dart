@@ -47,6 +47,10 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await _fetchData();
+  }
+
   String _formatDuration(String duration) {
     int seconds = int.tryParse(duration) ?? 0;
     int minutes = seconds ~/ 60;
@@ -96,9 +100,11 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                   child: Text('Error loading artist',
                       style: TextStyle(color: Colors.white)),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+              : RefreshIndicator(
+                  onRefresh: _refreshData,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Artist Info Section
@@ -260,6 +266,7 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                     ],
                   ),
                 ),
+              )
     );
   }
 }

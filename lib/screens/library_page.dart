@@ -94,6 +94,12 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
+  Future<void> _refreshLibrary() async {
+    await _loadRecentlyPlayed();
+    await _loadLikedCount();
+    await _loadArtistCount();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_pageIndex == 1) {
@@ -114,7 +120,9 @@ class _LibraryPageState extends State<LibraryPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: ListView(
+        child: RefreshIndicator(
+          onRefresh: _refreshLibrary,
+          child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
             // Page title

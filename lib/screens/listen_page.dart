@@ -169,6 +169,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     setState(() {});
   }
 
+  Future<void> _refreshHome() async {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isPlaying = widget.songManager.isPlaying();
@@ -201,14 +205,16 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           valueListenable: _isPageSearch,
           builder: (context, isPageSearch, child) {
             Widget page = _currentIndex == 0
-              ? SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 80),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(),
+              ? RefreshIndicator(
+                  onRefresh: _refreshHome,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
                         const SizedBox(height: 24),
                         _buildRecentlyPlayed(),
                         const SizedBox(height: 24),
