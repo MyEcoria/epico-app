@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';
 import '../theme.dart';
+import 'artist_info_page.dart';
 
 class ArtistsPage extends StatefulWidget {
   final SongManager songManager;
@@ -47,6 +48,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
   }
 
   void _openArtist(String id) {
+    debugPrint('Opening artist with ID: $id');
     if (id.isNotEmpty) {
       widget.onOpenArtist(id);
     }
@@ -88,7 +90,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                         artist['auteur'] ?? artist['name'] ?? 'Unknown',
                         style: const TextStyle(color: Colors.white),
                       ),
-                      onTap: () => _openArtist(artist['id']?.toString() ?? ''),
+                      onTap: () => _openArtist(artist['artist_id']?.toString() ?? ''),
                     );
                   },
                 ),
