@@ -60,6 +60,10 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     }
   }
 
+  Future<void> _refreshAlbum() async {
+    await _fetchAlbum();
+  }
+
   void _playAlbum() {
     if (_album_tracks == null || _album_tracks!.isEmpty) return;
     
@@ -161,153 +165,105 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                           ],
                         ),
                       )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Album cover
-                            Container(
-                              height: 200,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(
-                                  image: NetworkImage(_getAlbumCoverUrl()),
-                                  fit: BoxFit.cover,
+                    : RefreshIndicator(
+                        onRefresh: _refreshAlbum,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Album cover
+                              Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(_getAlbumCoverUrl()),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            // Album title
-                            Text(
-                              _album!["ALB_TITLE"] ?? _album!["title"] ?? 'Unknown Album',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            
-                            // Artist name
-                            Text(
-                              _album!["ART_NAME"] ?? _album!["artist"] ?? 'Unknown Artist',
-                              style: const TextStyle(color: Colors.white70, fontSize: 16),
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            // Play button
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: kAccentColor,
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: _playAlbum,
-                              child: const Text('Play Album'),
-                            ),
-                            
-                            // Track list (if available)
-                            if (_album_tracks != null && _album_tracks!.isNotEmpty) ...[
-                              const SizedBox(height: 24),
-                              const Text(
-                                'Tracks',
-                                style: TextStyle(
-                                  fontSize: 18,
+                              const SizedBox(height: 16),
+                              // Album title
+                              Text(
+                                _album!["ALB_TITLE"] ?? _album!["title"] ?? 'Unknown Album',
+                                style: const TextStyle(
+                                  fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: _album_tracks!.length,
-                                itemBuilder: (context, index) {
-                                  final track = _album_tracks![index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      widget.songManager.togglePlaySong(
-                                        name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                        description: '',
-                                        songUrl: 'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
-                                        pictureUrl: _getAlbumCoverUrl(),
-                                        artist: track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
-                                        songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
-                                        instant: true,
-                                      );
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[900],
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          // Cover Image
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(4),
-                                            child: Image.network(
-                                              _getAlbumCoverUrl(),
-                                              width: 50,
-                                              height: 50,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) =>
-                                                  Container(
-                                                    width: 50,
-                                                    height: 50,
-                                                    color: Colors.grey[700],
-                                                    child: const Icon(Icons.music_note,
-                                                        color: Colors.white54),
-                                                  ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          // Track Info
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
-                                                  style: const TextStyle(
-                                                    color: Colors.white54,
-                                                    fontSize: 12,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          // Duration
-                                          Text(
-                                            _formatDuration(track['DURATION']?.toString() ?? track['dure']?.toString() ?? '0'),
-                                            style: const TextStyle(
-                                              color: Colors.white54,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
+                              // Artist name
+                              Text(
+                                _album!["ART_NAME"] ?? _album!["artist"] ?? 'Unknown Artist',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
                               ),
+                              const SizedBox(height: 16),
+                              // Play album button
+                              ElevatedButton.icon(
+                                onPressed: _playAlbum,
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Play Album'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber,
+                                  foregroundColor: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Tracks list
+                              const Text(
+                                'Tracks',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              if (_album_tracks != null && _album_tracks!.isNotEmpty)
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _album_tracks!.length,
+                                  itemBuilder: (context, index) {
+                                    final track = _album_tracks![index];
+                                    return ListTile(
+                                      leading: const Icon(Icons.music_note, color: Colors.white),
+                                      title: Text(
+                                        track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                        style: const TextStyle(color: Colors.white),
+                                      ),
+                                      subtitle: Text(
+                                        _formatDuration(track['DURATION']?.toString() ?? '0'),
+                                        style: const TextStyle(color: Colors.white70),
+                                      ),
+                                      onTap: () => _playSong(
+                                        'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
+                                        name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                        description: _album!["ALB_TITLE"] ?? _album!["title"] ?? '',
+                                        pictureUrl: _getAlbumCoverUrl(),
+                                        artist: track['ART_NAME'] ?? track['artist'] ?? _album?["ART_NAME"] ?? _album?["artist"] ?? 'Unknown',
+                                        songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
+                                      ),
+                                    );
+                                  },
+                                )
+                              else
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Text(
+                                      'No tracks found.',
+                                      style: TextStyle(color: Colors.white54),
+                                    ),
+                                  ),
+                                ),
                             ],
-                          ],
+                          ),
                         ),
                       ),
           ),

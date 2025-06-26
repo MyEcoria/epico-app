@@ -169,6 +169,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
     setState(() {});
   }
 
+  Future<void> _refreshHome() async {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isPlaying = widget.songManager.isPlaying();
@@ -201,25 +205,28 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
           valueListenable: _isPageSearch,
           builder: (context, isPageSearch, child) {
             Widget page = _currentIndex == 0
-              ? SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 80),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 24),
-                        _buildRecentlyPlayed(),
-                        const SizedBox(height: 24),
-                        _buildFlowSection(),
-                        const SizedBox(height: 24),
-                        _buildMixesForYou(),
-                        const SizedBox(height: 24),
-                        _buildArtistsYouFollow(),
-                        const SizedBox(height: 24),
-                        _buildNewReleases(),
-                      ],
+              ? RefreshIndicator(
+                  onRefresh: _refreshHome,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 24),
+                          _buildRecentlyPlayed(),
+                          const SizedBox(height: 24),
+                          _buildFlowSection(),
+                          const SizedBox(height: 24),
+                          _buildMixesForYou(),
+                          const SizedBox(height: 24),
+                          _buildArtistsYouFollow(),
+                          const SizedBox(height: 24),
+                          _buildNewReleases(),
+                        ],
+                      ),
                     ),
                   ),
                 )
@@ -1242,21 +1249,10 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemCount: artists.length,
                           itemBuilder: (context, index) {
                             final artist = artists[index];
-                            return _buildArtistSearchItem(
-                              artist['artist_id']?.toString() ?? artist['ART_ID']?.toString() ?? artist['id']?.toString() ?? '',
-                              artist['name'] ?? artist['auteur'] ?? 'Unknown Artist',
-                              (() {
-                                const defaultUrl = 'https://via.placeholder.com/150';
-                                final pictureUrl = artist['picture'] as String?;
-                                final coverUrl = artist['cover'] as String?;
-                                if (coverUrl != null && coverUrl.contains('/cover/')) {
-                                  final match = RegExp(r'/cover/([^/]+)/').firstMatch(coverUrl);
-                                  if (match != null) {
-                                    return 'https://cdn-images.dzcdn.net/images/artist/${match.group(1)}/500x500-000000-80-0-0.jpg';
-                                  }
-                                }
-                                return pictureUrl ?? coverUrl ?? defaultUrl;
-                              })(),
+                            return _buildArtistItem(
+                              artist['id'] ?? '',
+                              artist['auteur'] ?? 'Unknown',
+                              artist['cover'] ?? 'assets/default_artist.jpg',
                             );
                           },
                         ),

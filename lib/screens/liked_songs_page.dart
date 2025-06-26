@@ -44,6 +44,10 @@ class _LikedSongsPageState extends State<LikedSongsPage> {
     }
   }
 
+  Future<void> _refreshSongs() async {
+    await _fetchSongs();
+  }
+
   void _playAll() {
     if (_songs.isNotEmpty) {
       widget.songManager.lunchPlaylist(_songs);
@@ -97,41 +101,45 @@ class _LikedSongsPageState extends State<LikedSongsPage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 )
-              : ListView.builder(
-                  itemCount: _songs.length,
-                  itemBuilder: (context, index) {
-                    final track = _songs[index];
-                    return ListTile(
-                      leading: track['cover'] != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Image.network(
-                                track['cover'],
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : const SizedBox(width: 50, height: 50),
-                      title: Text(
-                        track['title'] ?? 'Unknown',
-                        style: const TextStyle(color: Colors.white),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        track['auteur'] ?? 'Unknown',
-                        style: const TextStyle(color: Colors.white70),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Text(
-                        _formatDuration(track['dure']?.toString() ?? '0'),
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                      onTap: () => _playSong(track),
-                    );
-                  },
+              : RefreshIndicator(
+                  onRefresh: _refreshSongs,
+                  child: ListView.builder(
+                    itemCount: _songs.length,
+                    itemBuilder: (context, index) {
+                      final track = _songs[index];
+                      return ListTile(
+                        leading: track['cover'] != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.network(
+                                  track['cover'],
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const SizedBox(width: 50, height: 50),
+                        title: Text(
+                          track['title'] ?? 'Unknown',
+                          style: const TextStyle(color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          track['auteur'] ?? 'Unknown',
+                          style: const TextStyle(color: Colors.white70),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Text(
+                          _formatDuration(track['dure']?.toString() ?? '0'),
+                          style:
+                              const TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                        onTap: () => _playSong(track),
+                      );
+                    },
+                  ),
                 ),
     );
   }

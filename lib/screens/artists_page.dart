@@ -47,6 +47,10 @@ class _ArtistsPageState extends State<ArtistsPage> {
     }
   }
 
+  Future<void> _refreshArtists() async {
+    await _fetchArtists();
+  }
+
   void _openArtist(String id) {
     debugPrint('Opening artist with ID: $id');
     if (id.isNotEmpty) {
@@ -75,24 +79,27 @@ class _ArtistsPageState extends State<ArtistsPage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 )
-              : ListView.builder(
-                  itemCount: _artists.length,
-                  itemBuilder: (context, index) {
-                    final artist = _artists[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.grey.shade700,
-                        backgroundImage: NetworkImage(
-                          artist['cover'] ?? 'assets/default_artist.jpg',
+              : RefreshIndicator(
+                  onRefresh: _refreshArtists,
+                  child: ListView.builder(
+                    itemCount: _artists.length,
+                    itemBuilder: (context, index) {
+                      final artist = _artists[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.grey.shade700,
+                          backgroundImage: NetworkImage(
+                            artist['cover'] ?? 'assets/default_artist.jpg',
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        artist['auteur'] ?? artist['name'] ?? 'Unknown',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      onTap: () => _openArtist(artist['artist_id']?.toString() ?? ''),
-                    );
-                  },
+                        title: Text(
+                          artist['auteur'] ?? artist['name'] ?? 'Unknown',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        onTap: () => _openArtist(artist['artist_id']?.toString() ?? ''),
+                      );
+                    },
+                  ),
                 ),
     );
   }
