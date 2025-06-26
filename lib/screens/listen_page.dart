@@ -176,9 +176,25 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
 
     Widget mainContent;
     if (_selectedAlbumId != null) {
-      mainContent = AlbumInfoPage(albumId: _selectedAlbumId!, songManager: widget.songManager);
+      mainContent = AlbumInfoPage(
+        albumId: _selectedAlbumId!,
+        songManager: widget.songManager,
+        onBack: () {
+          setState(() {
+            _selectedAlbumId = null;
+          });
+        },
+      );
     } else if (_selectedArtistId != null) {
-      mainContent = ArtistInfoPage(artistId: _selectedArtistId!, songManager: widget.songManager);
+      mainContent = ArtistInfoPage(
+        artistId: _selectedArtistId!,
+        songManager: widget.songManager,
+        onBack: () {
+          setState(() {
+            _selectedArtistId = null;
+          });
+        },
+      );
     } else {
       mainContent = SafeArea(
         child: ValueListenableBuilder<bool>(
@@ -214,7 +230,15 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       return isSearchResults ? _buildSearchResultsScreen() : _buildSearchScreen();
                     },
                   )
-                : LibraryPage(songManager: widget.songManager, authCookie: authCookie);
+                : LibraryPage(
+                    songManager: widget.songManager,
+                    authCookie: authCookie,
+                    onArtistSelected: (id) {
+                      setState(() {
+                        _selectedArtistId = id;
+                      });
+                    },
+                  );
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: SizedBox(key: ValueKey<int>(_currentIndex), child: page),

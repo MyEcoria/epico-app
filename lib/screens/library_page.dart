@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
+import 'liked_songs_page.dart';
+import 'artists_page.dart';
 
 class LibraryPage extends StatefulWidget {
   final SongManager songManager;
   final String? authCookie;
+  final Function(String id) onArtistSelected;
 
-  const LibraryPage({Key? key, required this.songManager, this.authCookie}) : super(key: key);
+  const LibraryPage({Key? key, required this.songManager, this.authCookie, required this.onArtistSelected}) : super(key: key);
 
   @override
   _LibraryPageState createState() => _LibraryPageState();
@@ -19,6 +21,7 @@ class _LibraryPageState extends State<LibraryPage> {
   bool _isLoading = true;
   String _likedCount = '0';
   String _artistCount = '0';
+  int _pageIndex = 0; // 0 main, 1 liked songs, 2 artists
   
   @override
   void initState() {
@@ -93,6 +96,21 @@ class _LibraryPageState extends State<LibraryPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pageIndex == 1) {
+      return LikedSongsPage(
+        songManager: widget.songManager,
+        authCookie: widget.authCookie!,
+        onBack: () => setState(() => _pageIndex = 0),
+      );
+    } else if (_pageIndex == 2) {
+      return ArtistsPage(
+        songManager: widget.songManager,
+        authCookie: widget.authCookie!,
+        onBack: () => setState(() => _pageIndex = 0),
+        onOpenArtist: widget.onArtistSelected,
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -131,7 +149,13 @@ GridView.builder(
           icon: Icons.favorite,
           title: 'Liked Songs',
           subtitle: '$_likedCount songs',
-          onTap: () {},
+          onTap: () {
+            if (widget.authCookie != null) {
+              setState(() {
+                _pageIndex = 1;
+              });
+            }
+          },
         );
       case 1:
         return _buildCollectionCard(
@@ -152,7 +176,13 @@ GridView.builder(
           icon: Icons.person,
           title: 'Artists',
           subtitle: '$_artistCount artists',
-          onTap: () {},
+          onTap: () {
+            if (widget.authCookie != null) {
+              setState(() {
+                _pageIndex = 2;
+              });
+            }
+          },
         );
       default:
         return Container();
