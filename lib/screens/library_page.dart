@@ -123,118 +123,116 @@ class _LibraryPageState extends State<LibraryPage> {
         child: RefreshIndicator(
           onRefresh: _refreshLibrary,
           child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // Page title
-            const Padding(
-              padding: EdgeInsets.only(bottom: 20.0),
-              child: Text(
-                'Your Library',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              // Page title
+              const Padding(
+                padding: EdgeInsets.only(bottom: 20.0),
+                child: Text(
+                  'Your Library',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-            
-// Collection categories (2x2 grid)
-GridView.builder(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: 2,
-    childAspectRatio: 1.8, // Ajuste le ratio
-    mainAxisExtent: 100, // Hauteur fixe pour éviter l’overflow
-    crossAxisSpacing: 16,
-    mainAxisSpacing: 16,
-  ),
-  itemCount: 4,
-  itemBuilder: (context, index) {
-    switch (index) {
-      case 0:
-        return _buildCollectionCard(
-          icon: Icons.favorite,
-          title: 'Liked Songs',
-          subtitle: '$_likedCount songs',
-          onTap: () {
-            if (widget.authCookie != null) {
-              setState(() {
-                _pageIndex = 1;
-              });
-            }
-          },
-        );
-      case 1:
-        return _buildCollectionCard(
-          icon: Icons.download,
-          title: 'Downloads',
-          subtitle: '210 songs',
-          onTap: () {},
-        );
-      case 2:
-        return _buildCollectionCard(
-          icon: Icons.playlist_play,
-          title: 'Playlists',
-          subtitle: '12 playlists',
-          onTap: () {},
-        );
-      case 3:
-        return _buildCollectionCard(
-          icon: Icons.person,
-          title: 'Artists',
-          subtitle: '$_artistCount artists',
-          onTap: () {
-            if (widget.authCookie != null) {
-              setState(() {
-                _pageIndex = 2;
-              });
-            }
-          },
-        );
-      default:
-        return Container();
-    }
-  },
-),
-            
-            // Recently played section
-            Padding(
-              padding: const EdgeInsets.only(top: 28.0, bottom: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recently Played',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // See more functionality
-                    },
-                    child: const Text(
-                      'See more',
+              // Collection categories (2x2 grid)
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.8, // Ajuste le ratio
+                  mainAxisExtent: 100, // Hauteur fixe pour éviter l’overflow
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  switch (index) {
+                    case 0:
+                      return _buildCollectionCard(
+                        icon: Icons.favorite,
+                        title: 'Liked Songs',
+                        subtitle: '$_likedCount songs',
+                        onTap: () {
+                          if (widget.authCookie != null) {
+                            setState(() {
+                              _pageIndex = 1;
+                            });
+                          }
+                        },
+                      );
+                    case 1:
+                      return _buildCollectionCard(
+                        icon: Icons.download,
+                        title: 'Downloads',
+                        subtitle: '210 songs',
+                        onTap: () {},
+                      );
+                    case 2:
+                      return _buildCollectionCard(
+                        icon: Icons.playlist_play,
+                        title: 'Playlists',
+                        subtitle: '12 playlists',
+                        onTap: () {},
+                      );
+                    case 3:
+                      return _buildCollectionCard(
+                        icon: Icons.person,
+                        title: 'Artists',
+                        subtitle: '$_artistCount artists',
+                        onTap: () {
+                          if (widget.authCookie != null) {
+                            setState(() {
+                              _pageIndex = 2;
+                            });
+                          }
+                        },
+                      );
+                    default:
+                      return Container();
+                  }
+                },
+              ),
+              // Recently played section
+              Padding(
+                padding: const EdgeInsets.only(top: 28.0, bottom: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recently Played',
                       style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Recently played songs list
-            _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: _recentlyPlayed.take(6).map((track) => _buildRecentTrackItem(track)).toList(),
+                    TextButton(
+                      onPressed: () {
+                        // See more functionality
+                      },
+                      child: const Text(
+                        'See more',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-          ],
+              ),
+              // Recently played songs list
+              _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    children: _recentlyPlayed.take(6).map((track) => _buildRecentTrackItem(track)).toList(),
+                  ),
+            ],
+          ),
         ),
       ),
     );
