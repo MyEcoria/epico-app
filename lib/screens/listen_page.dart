@@ -1078,7 +1078,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 itemBuilder: (context, index) {
                 final artist = artists[index];
                 return _buildArtistItem(
-                  artist['id'] ?? '',
+                  artist['artist_id'] ?? '',
                   artist['auteur'] ?? 'Unknown',
                   artist['cover'] ?? 'assets/default_artist.jpg',
                 );
@@ -1250,9 +1250,18 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                           itemBuilder: (context, index) {
                             final artist = artists[index];
                             return _buildArtistItem(
-                              artist['id'] ?? '',
-                              artist['auteur'] ?? 'Unknown',
-                              artist['cover'] ?? 'assets/default_artist.jpg',
+                              artist['artist_id'] ?? '',
+                              artist['name'] ?? 'Unknown',
+                                // Replace 'cover' with the correct artist image URL if possible
+                                (artist['cover'] != null && artist['cover'].contains('/images/cover/'))
+                                  ? artist['cover'].replaceFirst(
+                                    '/images/cover/',
+                                    '/images/artist/'
+                                  ).replaceFirst(
+                                    RegExp(r'/\d+x\d+\.jpg'),
+                                    '/500x500-000000-80-0-0.jpg'
+                                  )
+                                  : (artist['cover'] ?? 'assets/default_artist.jpg'),
                             );
                           },
                         ),
@@ -1351,30 +1360,38 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
   Widget _buildArtistItem(String id, String name, String imageUrl) {
     return GestureDetector(
       onTap: () {
-        if (id.isNotEmpty) {
-          setState(() {
-            _selectedArtistId = id;
-          });
-        }
+        setState(() {
+          _selectedArtistId = id;
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.grey.shade700,
-              backgroundImage: NetworkImage(imageUrl),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Image.network(
+                imageUrl,
+                width: 70,
+                height: 70,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 70,
+                  height: 70,
+                  color: Colors.grey[800],
+                  child: const Icon(Icons.person, color: Colors.white54, size: 40),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
-              width: 80,
+              width: 70,
               child: Text(
                 name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-                maxLines: 2,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
           ],

@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MusicApiService {
-  static const String baseUrl = 'http://192.168.1.53:8000';
+  static const String baseUrl = 'http://82.66.224.39:8000';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<Map<String, dynamic>> getMe() async {
