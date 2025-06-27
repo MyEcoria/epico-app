@@ -116,217 +116,209 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
   Widget build(BuildContext context) {
     bool isPlaying = widget.songManager.isPlaying();
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.onBack != null) {
+          widget.onBack!();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+          ),
+          title: const Text('Album info'),
+          backgroundColor: Colors.black,
         ),
-        title: const Text('Album info'),
         backgroundColor: Colors.black,
-      ),
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Contenu principal avec padding bottom pour éviter le chevauchement
-          Padding(
-            padding: const EdgeInsets.all(0), // Suppression du padding bottom
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _album == null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Error loading album',
-                                style: TextStyle(color: Colors.white, fontSize: 18)),
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isLoading = true;
-                                  _errorMessage = null;
-                                });
-                                _fetchAlbum();
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _refreshAlbum,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
+        body: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(0),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _album == null
+                      ? Center(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Album cover
-                              Container(
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  image: DecorationImage(
-                                    image: NetworkImage(_getAlbumCoverUrl()),
-                                    fit: BoxFit.cover,
+                              const Text('Error loading album',
+                                  style: TextStyle(color: Colors.white, fontSize: 18)),
+                              if (_errorMessage != null) ...[
+                                const SizedBox(height: 16),
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: const TextStyle(color: Colors.red, fontSize: 14),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
-                              ),
+                              ],
                               const SizedBox(height: 16),
-                              // Album title
-                              Text(
-                                _album!["ALB_TITLE"] ?? _album!["title"] ?? 'Unknown Album',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _isLoading = true;
+                                    _errorMessage = null;
+                                  });
+                                  _fetchAlbum();
+                                },
+                                child: const Text('Retry'),
                               ),
-                              const SizedBox(height: 8),
-                              // Artist name
-                              Text(
-                                _album!["ART_NAME"] ?? _album!["artist"] ?? 'Unknown Artist',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              // Play album button
-                              ElevatedButton.icon(
-                                onPressed: _playAlbum,
-                                icon: const Icon(Icons.play_arrow),
-                                label: const Text('Play Album'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.amber,
-                                  foregroundColor: Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Tracks list
-                              const Text(
-                                'Tracks',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              if (_album_tracks != null && _album_tracks!.isNotEmpty)
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: _album_tracks!.length,
-                                  itemBuilder: (context, index) {
-                                    final track = _album_tracks![index];
-                                    return ListTile(
-                                      leading: const Icon(Icons.music_note, color: Colors.white),
-                                      title: Text(
-                                        track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                        style: const TextStyle(color: Colors.white),
-                                      ),
-                                      subtitle: Text(
-                                        _formatDuration(track['DURATION']?.toString() ?? '0'),
-                                        style: const TextStyle(color: Colors.white70),
-                                      ),
-                                      onTap: () => _playSong(
-                                        'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
-                                        name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                        description: _album!["ALB_TITLE"] ?? _album!["title"] ?? '',
-                                        pictureUrl: _getAlbumCoverUrl(),
-                                        artist: track['ART_NAME'] ?? track['artist'] ?? _album?["ART_NAME"] ?? _album?["artist"] ?? 'Unknown',
-                                        songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
-                                      ),
-                                    );
-                                  },
-                                )
-                              else
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Text(
-                                      'No tracks found.',
-                                      style: TextStyle(color: Colors.white54),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _refreshAlbum,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      image: NetworkImage(_getAlbumCoverUrl()),
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                            ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  _album!["ALB_TITLE"] ?? _album!["title"] ?? 'Unknown Album',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _album!["ART_NAME"] ?? _album!["artist"] ?? 'Unknown Artist',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: _playAlbum,
+                                  icon: const Icon(Icons.play_arrow),
+                                  label: const Text('Play Album'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    foregroundColor: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const Text(
+                                  'Tracks',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                if (_album_tracks != null && _album_tracks!.isNotEmpty)
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: _album_tracks!.length,
+                                    itemBuilder: (context, index) {
+                                      final track = _album_tracks![index];
+                                      return ListTile(
+                                        leading: const Icon(Icons.music_note, color: Colors.white),
+                                        title: Text(
+                                          track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                        subtitle: Text(
+                                          _formatDuration(track['DURATION']?.toString() ?? '0'),
+                                          style: const TextStyle(color: Colors.white70),
+                                        ),
+                                        onTap: () => _playSong(
+                                          'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
+                                          name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
+                                          description: _album!["ALB_TITLE"] ?? _album!["title"] ?? '',
+                                          pictureUrl: _getAlbumCoverUrl(),
+                                          artist: track['ART_NAME'] ?? track['artist'] ?? _album?["ART_NAME"] ?? _album?["artist"] ?? 'Unknown',
+                                          songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
+                                        ),
+                                      );
+                                    },
+                                  )
+                                else
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: Text(
+                                        'No tracks found.',
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-          ),
-          
-          // Mini Player en bas - Simplifié pour éviter les conflits
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 20,
-            child: StreamBuilder<bool>(
-              stream: widget.songManager.isPlayingStream,
-              builder: (context, snapshot) {
-                final isPlaying = snapshot.data ?? false;
-                final isPaused = widget.songManager.isPaused();
-                
-                // Afficher le mini player seulement s'il y a une chanson en cours ou en pause
-                if (!isPlaying && !isPaused) {
-                  return const SizedBox.shrink();
-                }
-                
-                return StreamBuilder<Map<String, dynamic>>(
-                  stream: widget.songManager.songStateStream,
-                  builder: (context, songSnapshot) {
-                    final currentSongState = songSnapshot.data ?? widget.songManager.getSongState();
-                    return AudioPlayerWidget(
-                      songManager: widget.songManager,
-                      currentSongTitle: currentSongState['name'] ?? "Unknown",
-                      currentArtist: currentSongState['artist'] ?? "Unknown",
-                      albumArtUrl: currentSongState['pictureUrl'] ?? "https://via.placeholder.com/150",
-                      duration: const Duration(minutes: 3, seconds: 45),
-                      onPlayPause: () {
-                        final songState = widget.songManager.getSongState();
-                        widget.songManager.togglePlaySong(
-                          name: songState['name'] ?? '',
-                          description: songState['description'] ?? '',
-                          songUrl: songState['songUrl'] ?? '',
-                          pictureUrl: songState['pictureUrl'] ?? '',
-                          artist: songState['artist'] ?? '',
-                          songId: songState['songId'] ?? '',
-                        );
-                      },
-                      lyricsExcerpt: "I've been tryna call, I've been on my own for long enough...",
-                      isFavorite: false,
-                      onToggleFavorite: () {
-                        if (authCookie != null && currentSongState['songId'] != null) {
-                          MusicApiService().createLike(currentSongState['songId'], authCookie!);
-                        }
-                      },
-                      onShare: () {
-                        // Implement share functionality
-                      },
-                      isPlaying: isPlaying,
-                      nextSongTitle: "Save Your Tears",
-                      nextSongArtist: "The Weeknd",
-                      onNext: widget.songManager.playNextInQueue,
-                      onPrevious: widget.songManager.playLastFromQueue,
-                    );
-                  },
-                );
-              },
             ),
-          ),
-        ],
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 20,
+              child: StreamBuilder<bool>(
+                stream: widget.songManager.isPlayingStream,
+                builder: (context, snapshot) {
+                  final isPlaying = snapshot.data ?? false;
+                  final isPaused = widget.songManager.isPaused();
+                  if (!isPlaying && !isPaused) {
+                    return const SizedBox.shrink();
+                  }
+                  return StreamBuilder<Map<String, dynamic>>(
+                    stream: widget.songManager.songStateStream,
+                    builder: (context, songSnapshot) {
+                      final currentSongState = songSnapshot.data ?? widget.songManager.getSongState();
+                      return AudioPlayerWidget(
+                        songManager: widget.songManager,
+                        currentSongTitle: currentSongState['name'] ?? "Unknown",
+                        currentArtist: currentSongState['artist'] ?? "Unknown",
+                        albumArtUrl: currentSongState['pictureUrl'] ?? "https://via.placeholder.com/150",
+                        duration: const Duration(minutes: 3, seconds: 45),
+                        onPlayPause: () {
+                          final songState = widget.songManager.getSongState();
+                          widget.songManager.togglePlaySong(
+                            name: songState['name'] ?? '',
+                            description: songState['description'] ?? '',
+                            songUrl: songState['songUrl'] ?? '',
+                            pictureUrl: songState['pictureUrl'] ?? '',
+                            artist: songState['artist'] ?? '',
+                            songId: songState['songId'] ?? '',
+                          );
+                        },
+                        lyricsExcerpt: '',
+                        isFavorite: false,
+                        onToggleFavorite: () {},
+                        onShare: () {},
+                        isPlaying: isPlaying,
+                        nextSongTitle: '',
+                        nextSongArtist: '',
+                        onNext: () {},
+                        onPrevious: () {},
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

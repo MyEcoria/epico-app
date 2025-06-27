@@ -83,7 +83,12 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        widget.onBack();
+        return false;
+      },
+      child: Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -116,7 +121,10 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                             borderRadius: BorderRadius.circular(8),
                             image: DecorationImage(
                               image: NetworkImage(
-                              'https://cdn-images.dzcdn.net/images/artist/${_artist!["ART_PICTURE"]}/500x500-000000-80-0-0.jpg'),
+                                _artist!["ART_PICTURE"] != null
+                                    ? "https://cdn-images.dzcdn.net/images/artist/${_artist!["ART_PICTURE"]}/500x500-000000-80-0-0.jpg"
+                                    : _artist!["picture"] ?? '',
+                              ),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -136,28 +144,24 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                       if (_artist!["FACEBOOK"] != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text(_artist!["FACEBOOK"],
-                              style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                          child: Text(_artist!["FACEBOOK"], style: const TextStyle(color: Colors.white54, fontSize: 14)),
                         ),
                       if (_artist!["TWITTER"] != null)
                         Text(_artist!["TWITTER"],
                             style: const TextStyle(color: Colors.white54, fontSize: 14)),
-                      
                       // Ajout du bouton "Tout jouer"
                       if (_tracks != null && _tracks!.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Center(
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: Colors.deepPurple,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               ),
+                              onPressed: _playAllTracks,
                               icon: const Icon(Icons.play_arrow),
                               label: const Text('Tout jouer'),
-                              onPressed: _playAllTracks,
                             ),
                           ),
                         ),
@@ -172,7 +176,6 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
                       if (_tracks != null && _tracks!.isNotEmpty)
                         ListView.builder(
                           shrinkWrap: true,
@@ -180,76 +183,35 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                           itemCount: _tracks!.length,
                           itemBuilder: (context, index) {
                             final track = _tracks![index];
-                            return GestureDetector(
-                              onTap: () => _playTrack(track),
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[900],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Cover Image
-                                    ClipRRect(
+                            return ListTile(
+                              leading: track['cover'] != null
+                                  ? ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
                                       child: Image.network(
-                                        track["cover"] ?? '',
+                                        track['cover'],
                                         width: 50,
                                         height: 50,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            Container(
-                                              width: 50,
-                                              height: 50,
-                                              color: Colors.grey[700],
-                                              child: const Icon(Icons.music_note,
-                                                  color: Colors.white54),
-                                            ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    
-                                    // Track Info
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            track["title"] ?? 'Unknown',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            track["album"] ?? 'Unknown Album',
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    
-                                    // Duration
-                                    Text(
-                                      _formatDuration(track["dure"]?.toString() ?? '0'),
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                    )
+                                  : const SizedBox(width: 50, height: 50),
+                              title: Text(
+                                track['title'] ?? 'Unknown',
+                                style: const TextStyle(color: Colors.white),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              subtitle: Text(
+                                track['auteur'] ?? _artist?["ART_NAME"] ?? _artist?["name"] ?? 'Unknown',
+                                style: const TextStyle(color: Colors.white70),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: Text(
+                                _formatDuration(track['dure']?.toString() ?? '0'),
+                                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                              ),
+                              onTap: () => _playTrack(track),
                             );
                           },
                         )
@@ -266,7 +228,8 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                     ],
                   ),
                 ),
-              )
-    );
-  }
+              ),
+    ),
+  );
+}
 }

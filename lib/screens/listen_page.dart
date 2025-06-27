@@ -255,7 +255,23 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
       );
     }
 
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedAlbumId != null) {
+          setState(() => _selectedAlbumId = null);
+          return false;
+        }
+        if (_selectedArtistId != null) {
+          setState(() => _selectedArtistId = null);
+          return false;
+        }
+        if (_isSearchResults.value) {
+          _isSearchResults.value = false;
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
@@ -305,6 +321,7 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
         ],
       ),
       bottomNavigationBar: _buildBottomNavigation(),
+    ),
     );
   }
 
