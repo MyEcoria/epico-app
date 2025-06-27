@@ -60,12 +60,17 @@ class _ArtistsPageState extends State<ArtistsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onBack,
-        ),
+    return WillPopScope(
+      onWillPop: () async {
+        widget.onBack();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: widget.onBack,
+          ),
         title: const Text('Artists'),
         backgroundColor: Colors.black,
       ),
@@ -100,7 +105,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                       );
                     },
                   ),
-                ),
+              ),
+    ),
     );
   }
 }

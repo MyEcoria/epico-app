@@ -117,7 +117,15 @@ class _LibraryPageState extends State<LibraryPage> {
       );
     }
 
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_pageIndex != 0) {
+          setState(() => _pageIndex = 0);
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: RefreshIndicator(
@@ -234,7 +242,8 @@ class _LibraryPageState extends State<LibraryPage> {
             ],
           ),
         ),
-      ),
+              ),
+    ),
     );
   }
 

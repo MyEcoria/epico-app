@@ -116,12 +116,20 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
   Widget build(BuildContext context) {
     bool isPlaying = widget.songManager.isPlaying();
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
-        ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.onBack != null) {
+          widget.onBack!();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+          ),
         title: const Text('Album info'),
         backgroundColor: Colors.black,
       ),
