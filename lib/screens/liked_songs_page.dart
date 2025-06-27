@@ -1,3 +1,10 @@
+/*
+** EPITECH PROJECT, 2025
+** liked_songs_page.dart
+** File description:
+** Liked songs page for the Deezer app.
+*/
+
 import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';

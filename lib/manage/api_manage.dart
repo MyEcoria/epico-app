@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2025
-** music_api_service.dart
+** api_manage.dart
 ** File description:
 ** Service class for handling API requests related to music data.
 ** This file contains methods to fetch user data, latest tracks,

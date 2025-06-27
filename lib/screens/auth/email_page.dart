@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2025
-** email_screen.dart
+** email_page.dart
 ** File description:
 ** Email screen for the Deezer app.
 ** This file contains the UI and logic for the email input screen.
