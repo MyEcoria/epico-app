@@ -16,7 +16,7 @@ class LikedSongsPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-_LikedSongsPageState createState() => _LikedSongsPageState();
+  _LikedSongsPageState createState() => _LikedSongsPageState();
 }
 
 class _LikedSongsPageState extends State<LikedSongsPage> {
@@ -86,66 +86,67 @@ class _LikedSongsPageState extends State<LikedSongsPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: widget.onBack,
           ),
-        title: const Text('Liked Songs'),
+          title: const Text('Liked Songs'),
+          backgroundColor: Colors.black,
+        ),
         backgroundColor: Colors.black,
+        floatingActionButton: _songs.isNotEmpty
+            ? FloatingActionButton(
+                backgroundColor: kAccentColor,
+                onPressed: _playAll,
+                child: const Icon(Icons.play_arrow),
+              )
+            : null,
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _songs.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No liked songs',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _refreshSongs,
+                    child: ListView.builder(
+                      itemCount: _songs.length,
+                      itemBuilder: (context, index) {
+                        final track = _songs[index];
+                        return ListTile(
+                          leading: track['cover'] != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Image.network(
+                                    track['cover'],
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const SizedBox(width: 50, height: 50),
+                          title: Text(
+                            track['title'] ?? 'Unknown',
+                            style: const TextStyle(color: Colors.white),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            track['auteur'] ?? 'Unknown',
+                            style: const TextStyle(color: Colors.white70),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Text(
+                            _formatDuration(track['dure']?.toString() ?? '0'),
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 12),
+                          ),
+                          onTap: () => _playSong(track),
+                        );
+                      },
+                    ),
+                  ),
       ),
-      backgroundColor: Colors.black,
-      floatingActionButton: _songs.isNotEmpty
-          ? FloatingActionButton(
-              backgroundColor: kAccentColor,
-              onPressed: _playAll,
-              child: const Icon(Icons.play_arrow),
-            )
-          : null,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _songs.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No liked songs',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _refreshSongs,
-                  child: ListView.builder(
-                    itemCount: _songs.length,
-                    itemBuilder: (context, index) {
-                      final track = _songs[index];
-                      return ListTile(
-                        leading: track['cover'] != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: Image.network(
-                                  track['cover'],
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const SizedBox(width: 50, height: 50),
-                        title: Text(
-                          track['title'] ?? 'Unknown',
-                          style: const TextStyle(color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          track['auteur'] ?? 'Unknown',
-                          style: const TextStyle(color: Colors.white70),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Text(
-                          _formatDuration(track['dure']?.toString() ?? '0'),
-                          style:
-                              const TextStyle(color: Colors.white54, fontSize: 12),
-                        ),
-                        onTap: () => _playSong(track),
-                      );
-                    },
-                  ),
-                ),
     );
   }
 }
