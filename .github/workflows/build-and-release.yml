@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [apk, appbundle, ios, windows, macos, linux]
+        platform: [apk, windows, macos, linux]
 
     steps:
       - name: Checkout code
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.32.5'
 
       - name: Install dependencies
         run: flutter pub get
@@ -31,14 +31,6 @@ jobs:
       - name: Build APK
         if: matrix.platform == 'apk'
         run: flutter build apk --release
-
-      - name: Build AppBundle
-        if: matrix.platform == 'appbundle'
-        run: flutter build appbundle --release
-
-      - name: Build iOS
-        if: matrix.platform == 'ios'
-        run: flutter build ios --release --no-codesign
 
       - name: Build Windows
         if: matrix.platform == 'windows'
@@ -63,26 +55,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/app/outputs/flutter-apk/app-release.apk
           asset_name: app-android.apk
-          tag: ${{ github.ref }}
-          overwrite: true
-
-      - name: Upload AppBundle
-        if: matrix.platform == 'appbundle'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/app/outputs/bundle/release/app-release.aab
-          asset_name: app-android.aab
-          tag: ${{ github.ref }}
-          overwrite: true
-
-      - name: Upload iOS
-        if: matrix.platform == 'ios'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/ios/iphoneos/Runner.app
-          asset_name: app-ios.zip
           tag: ${{ github.ref }}
           overwrite: true
 
