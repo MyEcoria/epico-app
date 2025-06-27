@@ -9,8 +9,6 @@
 ** It also handles the playback of songs using the SongManager.
 */
 
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import '../manage/widget_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -25,10 +23,6 @@ import '../theme.dart';
 import '../manage/navigation_helper.dart';
 import 'album_info_page.dart';
 import 'artist_info_page.dart';
-
-void main() {
-  runApp(const MyApp());
-}
 
 class GenreTile extends StatelessWidget {
   final String name;
@@ -77,32 +71,6 @@ class GenreTile extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Colors.black,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white70,
-        ),
-      ),
-      home: MusicAppHomePage(songManager: SongManager()),
-    );
-  }
-}
 
 class MusicAppHomePage extends StatefulWidget {
   final SongManager songManager;
@@ -351,7 +319,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               ),
             );
           } else {
-            print('snapshot.data: ${snapshot.data}');
             return Text(
               "Hi ${extractFirstNameFromEmail(snapshot.data ?? 'default.name@epitech.eu')},",
               style: const TextStyle(

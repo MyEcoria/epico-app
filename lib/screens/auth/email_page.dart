@@ -13,22 +13,6 @@ import 'password_page.dart';
 import '../../theme.dart';
 import '../../manage/navigation_helper.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: EmailScreen(),
-    );
-  }
-}
-
 class LowerCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

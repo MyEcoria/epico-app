@@ -21,9 +21,4 @@ class CacheService {
     return prefs.getString(key);  // Retourne null si la clé n'existe pas
   }
 
-  // Fonction pour vérifier si une donnée existe dans le cache
-  Future<bool> containsCacheValue(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(key);
-  }
 }

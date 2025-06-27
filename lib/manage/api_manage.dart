@@ -50,47 +50,6 @@ class MusicApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getFollowTracks() async {
-    try {
-      final response = await http.post(Uri.parse('$baseUrl/follow'));
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item as Map<String, dynamic>).toList();
-      } else {
-        throw Exception('Failed to load follow tracks: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error fetching follow tracks: $e');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getNewReleases() async {
-    try {
-      final response = await http.post(Uri.parse('$baseUrl/releases'));
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item as Map<String, dynamic>).toList();
-      } else {
-        throw Exception('Failed to load new releases: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error fetching new releases: $e');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getRecommendedPlaylist() async {
-    try {
-      final response = await http.post(Uri.parse('$baseUrl/recommended'));
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item as Map<String, dynamic>).toList();
-      } else {
-        throw Exception('Failed to load recommended playlists: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error fetching recommended playlists: $e');
-    }
-  }
 
   Future<Map<String, dynamic>> createUser(String email, String password) async {
     try {

@@ -14,7 +14,6 @@ import 'api_manage.dart';
 class SongManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
   String? _currentSongUrl;
@@ -42,9 +41,6 @@ class SongManager {
     return _audioPlayer.state == PlayerState.paused;
   }
 
-  bool isPausedSong(String songUrl) {
-    return _currentSongUrl == songUrl && _audioPlayer.state == PlayerState.paused;
-  }
 
   Stream<bool> get isPlayingStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.playing);
   Stream<bool> get isPausedStream => _audioPlayer.onPlayerStateChanged.map((state) => state == PlayerState.paused);
