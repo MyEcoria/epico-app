@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** login_page.dart
 ** File description:
-** Login page for the Deezer app.
+** Login page for the Epico.
 ** This file contains the UI and logic for the login screen.
 ** It validates the email and password, stores the authentication cookie,
 ** and navigates to the home page upon successful login.

@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** theme.dart
 ** File description:
-** App theme configuration for the Deezer app.
+** App theme configuration for the Epico.
 */
 
 import 'package:flutter/material.dart';

@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** home_page.dart
 ** File description:
-** Home page for the Deezer app.
+** Home page for the Epico.
 ** This file contains the UI and logic for the home screen.
 ** It handles authentication checks and navigation to the appropriate screens.
 */

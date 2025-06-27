@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** navigation_helper.dart
 ** File description:
-** Navigation helper for the Deezer app.
+** Navigation helper for the Epico.
 */
 
 import 'package:flutter/material.dart';

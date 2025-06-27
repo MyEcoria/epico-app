@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** listen_page.dart
 ** File description:
-** Home page for the Deezer app.
+** Home page for the Epico.
 ** This file contains the main UI and logic for the home screen of the app.
 ** It displays various sections like recently played songs, mixes for you,
 ** artists you follow, new releases, and recommended playlists.

@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** main.dart
 ** File description:
-** Main entry point for the Deezer app.
+** Main entry point for the Epico.
 ** This file initializes the Flutter application and handles
 ** the authentication state to determine which screen to display.
 ** It uses Flutter Secure Storage to securely store authentication tokens.

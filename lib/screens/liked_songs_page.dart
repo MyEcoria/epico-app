@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** liked_songs_page.dart
 ** File description:
-** Liked songs page for the Deezer app.
+** Liked songs page for the Epico.
 */
 
 import 'package:flutter/material.dart';

@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** library_page.dart
 ** File description:
-** Library page for the Deezer app.
+** Library page for the Epico.
 */
 
 import 'package:flutter/material.dart';

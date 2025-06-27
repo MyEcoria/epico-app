@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** artists_page.dart
 ** File description:
-** Artists page for the Deezer app.
+** Artists page for the Epico.
 */
 
 import 'package:flutter/material.dart';

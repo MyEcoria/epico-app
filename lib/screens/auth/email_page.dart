@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** email_page.dart
 ** File description:
-** Email screen for the Deezer app.
+** Email screen for the Epico.
 ** This file contains the UI and logic for the email input screen.
 ** It validates the email format and navigates to the password screen upon valid input.
 */

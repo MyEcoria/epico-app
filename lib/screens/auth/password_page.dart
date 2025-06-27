@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** password_page.dart
 ** File description:
-** Password page for the Deezer app.
+** Password page for the Epico.
 */
 
 import 'package:flutter/material.dart';
