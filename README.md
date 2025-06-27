@@ -1,16 +1,45 @@
-# deezer_app
+# Epico
 
-A new Flutter project.
+Epico is a music streaming application developed with Flutter for Epitech students.
 
-## Getting Started
+## Overview
 
-This project is a starting point for a Flutter application.
+![Epico Logo](assets/logo.png)
 
-A few resources to get you started if this is your first Flutter project:
+Epico allows you to listen to music, discover new artists, manage your library, and enjoy personalized recommendations.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Main Features
+- Secure authentication for Epitech students
+- Listen to recent tracks and get personalized recommendations
+- Manage playlists, albums, followed artists, and liked tracks
+- Modern and intuitive interface
+- Multi-platform support (Android, iOS, Linux, Web, etc.)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Quick Start
+
+1. **Clone the repository**
+    ```sh
+    git clone <repo-url>
+    cd deezer_app
+    ```
+2. **Install dependencies**
+    ```sh
+    flutter pub get
+    ```
+3. **Run the application**
+    ```sh
+    flutter run
+    ```
+
+## Project Structure
+- `lib/`: Main source code (UI, management, services)
+- `assets/`: Images, logos, and graphic resources
+- `android/`, `ios/`, `linux/`, `web/`, `macos/`, `windows/`: Supported platforms
+
+## Useful Resources
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Flutter Cookbook](https://docs.flutter.dev/cookbook)
+
+---
+© 2025 Epico - Epitech Project
+
