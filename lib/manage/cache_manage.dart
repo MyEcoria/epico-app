@@ -1,9 +1,8 @@
 /*
 ** EPITECH PROJECT, 2025
-** song_manager.dart
+** cache_manage.dart
 ** File description:
-** Manages the playback of songs, including queue and history management.
-** This file contains methods to play, pause, add to queue, and manage the playback state.
+** Simple cache service for storing values locally.
 */
 
 import 'package:shared_preferences/shared_preferences.dart';

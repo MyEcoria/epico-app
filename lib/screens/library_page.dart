@@ -1,3 +1,10 @@
+/*
+** EPITECH PROJECT, 2025
+** library_page.dart
+** File description:
+** Library page for the Deezer app.
+*/
+
 import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';

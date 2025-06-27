@@ -1,3 +1,10 @@
+/*
+** EPITECH PROJECT, 2025
+** artists_page.dart
+** File description:
+** Artists page for the Deezer app.
+*/
+
 import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';

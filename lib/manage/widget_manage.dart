@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2025
-** audio_player_widget.dart
+** widget_manage.dart
 ** File description:
 ** Widget for audio player UI, including mini and expanded player views.
 ** This file contains the UI and logic for the audio player, including playback controls,

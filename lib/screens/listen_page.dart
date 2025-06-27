@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2025
-** music_app_home_page.dart
+** listen_page.dart
 ** File description:
 ** Home page for the Deezer app.
 ** This file contains the main UI and logic for the home screen of the app.
