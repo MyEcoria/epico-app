@@ -1,0 +1,113 @@
+name: Build and Release Flutter App
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [apk, appbundle, ios, windows, macos, linux]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        if: matrix.platform == 'apk'
+        run: flutter build apk --release
+
+      - name: Build AppBundle
+        if: matrix.platform == 'appbundle'
+        run: flutter build appbundle --release
+
+      - name: Build iOS
+        if: matrix.platform == 'ios'
+        run: flutter build ios --release --no-codesign
+
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: flutter build windows --release
+
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: flutter build macos --release
+
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: flutter build linux --release
+
+      - name: Upload APK
+        if: matrix.platform == 'apk'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-android.apk
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload AppBundle
+        if: matrix.platform == 'appbundle'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/app/outputs/bundle/release/app-release.aab
+          asset_name: app-android.aab
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload iOS
+        if: matrix.platform == 'ios'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/ios/iphoneos/Runner.app
+          asset_name: app-ios.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload Windows
+        if: matrix.platform == 'windows'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/windows/runner/Release/app.exe
+          asset_name: app-windows.exe
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload macOS
+        if: matrix.platform == 'macos'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/macos/Build/Products/Release/app.app
+          asset_name: app-macos.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload Linux
+        if: matrix.platform == 'linux'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/linux/runner/Release/app
+          asset_name: app-linux
+          tag: ${{ github.ref }}
+          overwrite: true
