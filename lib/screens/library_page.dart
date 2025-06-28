@@ -140,7 +140,6 @@ class _LibraryPageState extends State<LibraryPage> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // Page title
               const Padding(
                 padding: EdgeInsets.only(bottom: 20.0),
                 child: Text(
@@ -152,7 +151,6 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                 ),
               ),
-              // Collection categories (2x2 grid)
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -211,7 +209,6 @@ class _LibraryPageState extends State<LibraryPage> {
                   }
                 },
               ),
-              // Recently played section
               Padding(
                 padding: const EdgeInsets.only(top: 28.0, bottom: 16.0),
                 child: Row(
@@ -227,7 +224,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // See more functionality
+                        // Todo
                       },
                       child: const Text(
                         'See more',
@@ -240,7 +237,6 @@ class _LibraryPageState extends State<LibraryPage> {
                   ],
                 ),
               ),
-              // Recently played songs list
               _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
@@ -339,7 +335,7 @@ class _LibraryPageState extends State<LibraryPage> {
       trailing: IconButton(
         icon: const Icon(Icons.more_vert, color: Colors.white70),
         onPressed: () {
-          // Show options menu
+          // Todo
         },
       ),
       onTap: () => _playSong(track),

@@ -46,7 +46,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       try {
         final userInfo = await MusicApiService().userInfo(authToken);
         cache.setCacheValue('email', userInfo['email']);
-        // If auth token exists and user info is valid, navigate to listen page
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
         );
@@ -81,7 +80,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -99,7 +97,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 ),
               ),
               Spacer(),
-              // Buttons
               ElevatedButton(
                 onPressed: () {
                   NavigationHelper.pushFade(context, EmailScreen());

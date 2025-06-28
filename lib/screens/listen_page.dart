@@ -401,13 +401,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            // Text(
-            //   "See more",
-            //   style: TextStyle(
-            //     fontSize: 14,
-            //     color: Colors.white,
-            //   ),
-            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -709,13 +702,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            // Text(
-            //   "See more",
-            //   style: TextStyle(
-            //     fontSize: 14,
-            //     color: Colors.white,
-            //   ),
-            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -827,13 +813,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 color: Colors.white,
               ),
             ),
-            // Text(
-            //   "See more",
-            //   style: TextStyle(
-            //     fontSize: 14,
-            //     color: Colors.white,
-            //   ),
-            // ),
           ],
         ),
         const SizedBox(height: 16),
@@ -1211,8 +1190,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 });
               });
               
-              
-              // Extract different types of results from the API response
               List<Map<String, dynamic>> songs = [];
               List<Map<String, dynamic>> artists = [];
               List<Map<String, dynamic>> albums = [];
@@ -1220,21 +1197,18 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
               if (_searchResults.isNotEmpty) {
                 final response = _searchResults.first;
                 
-                // Extract songs from songsArray
                 if (response.containsKey("songsArray")) {
                   songs = (response["songsArray"] as List<dynamic>)
                       .map((item) => item as Map<String, dynamic>)
                       .toList();
                 }
                 
-                // Extract artists from artistsArray
                 if (response.containsKey("artistsArray")) {
                   artists = (response["artistsArray"] as List<dynamic>)
                       .map((item) => item as Map<String, dynamic>)
                       .toList();
                 }
                 
-                // Extract albums from albumsArray
                 if (response.containsKey("albumsArray")) {
                   albums = (response["albumsArray"] as List<dynamic>)
                       .map((item) => item as Map<String, dynamic>)
@@ -1245,7 +1219,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Artists Section
                     if (artists.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1269,7 +1242,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                             return _buildArtistItem(
                               artist['artist_id'] ?? '',
                               artist['name'] ?? 'Unknown',
-                                // Replace 'cover' with the correct artist image URL if possible
                                 (artist['cover'] != null && artist['cover'].contains('/images/cover/'))
                                   ? artist['cover'].replaceFirst(
                                     '/images/cover/',
@@ -1285,7 +1257,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       ),
                     ],
                     
-                    // Albums Section
                     if (albums.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1316,7 +1287,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       ),
                     ],
                     
-                    // Songs Section
                     if (songs.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -1347,7 +1317,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                       ),
                     ],
                     
-                    // Show message if no results
                     if (songs.isEmpty && artists.isEmpty && albums.isEmpty && _searchResults.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.all(32.0),

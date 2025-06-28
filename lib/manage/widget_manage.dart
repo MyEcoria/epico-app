@@ -74,7 +74,6 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
     String? value = await _secureStorage.read(key: 'auth');
     authCookie = value;
     if (authCookie != null && mounted) {
-      // Initialize _isLiked after loading the cookie
       final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
       setState(() {
         _isLikedNotifier.value = initialLike;
@@ -98,9 +97,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
 
   void _setupSongChangeListener() {
     widget.songManager.songStateStream.listen((_) {
-      // Reset isLiked to false when song changes
       _isLikedNotifier.value = false;
-      // Then check with API if the new song is liked
       if (authCookie != null) {
         MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!)
             .then((liked) {
@@ -342,7 +339,6 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                     icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  // Missing element here - maybe a title or another action button
                   const SizedBox.shrink(),
                 ],
               ),

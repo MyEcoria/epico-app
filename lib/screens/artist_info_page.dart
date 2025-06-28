@@ -119,7 +119,6 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                     child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Artist Info Section
                       if (_artist!["ART_PICTURE"] != null ||
                           _artist!["picture"] != null)
                         Container(
@@ -156,7 +155,6 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                       if (_artist!["TWITTER"] != null)
                         Text(_artist!["TWITTER"],
                             style: const TextStyle(color: Colors.white54, fontSize: 14)),
-                      // Ajout du bouton "Tout jouer"
                       if (_tracks != null && _tracks!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -172,7 +170,6 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                             ),
                           ),
                         ),
-                      // Tracks Section
                       const SizedBox(height: 16),
                       const Text(
                         'Tracks',

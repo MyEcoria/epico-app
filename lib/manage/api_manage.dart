@@ -234,7 +234,7 @@ class MusicApiService {
         headers: {'Content-Type': 'application/json', 'token': cookie},
         body: json.encode({'name': name}),
       );
-      // Retourner l'objet complet au lieu d'une liste
+
       Map<String, dynamic> data = json.decode(response.body);
       return data;
     } catch (e) {
