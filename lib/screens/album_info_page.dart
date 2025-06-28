@@ -76,10 +76,9 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     
     final tracks = _album_tracks!;
     final playlist = tracks.map<Map<String, dynamic>>((track) {
-      // Adapter selon la structure réelle des données retournées par l'API
       return {
         'title': track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-        'song': 'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
+        'song': track['song'],
         'cover': _getAlbumCoverUrl(),
         'auteur': track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
         'song_id': track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
@@ -240,6 +239,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                     itemCount: _album_tracks!.length,
                                     itemBuilder: (context, index) {
                                       final track = _album_tracks![index];
+                                      debugPrint('Track data: $track');
                                       return ListTile(
                                         leading: const Icon(Icons.music_note, color: Colors.white),
                                         title: Text(
@@ -251,7 +251,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                           style: const TextStyle(color: Colors.white70),
                                         ),
                                         onTap: () => _playSong(
-                                          'http://192.168.1.53:8000/music/${track['SNG_ID']}.mp3',
+                                          track['song'],
                                           name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
                                           description: _album!["ALB_TITLE"] ?? _album!["title"] ?? '',
                                           pictureUrl: _getAlbumCoverUrl(),
