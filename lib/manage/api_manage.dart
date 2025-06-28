@@ -383,12 +383,8 @@ class MusicApiService {
       );
       if (response.statusCode == 200) {
         dynamic data = json.decode(response.body);
-        debugPrint('Raw album tracks data: ${data.toString()}');
         
-        // Vérifier si data est une Map ou une List
         if (data is Map<String, dynamic>) {
-          // Si c'est une Map, chercher une clé qui contient les pistes
-          // Les clés possibles peuvent être 'tracks', 'data', 'songs', etc.
           if (data.containsKey('tracks') && data['tracks'] is List) {
             List<dynamic> tracks = data['tracks'];
             return tracks.map((item) => item as Map<String, dynamic>).toList();
@@ -399,7 +395,6 @@ class MusicApiService {
             List<dynamic> tracks = data['songs'];
             return tracks.map((item) => item as Map<String, dynamic>).toList();
           } else {
-            // Si aucune clé connue n'est trouvée, convertir les valeurs de la Map en List
             List<Map<String, dynamic>> tracks = [];
             data.forEach((key, value) {
               if (value is Map<String, dynamic>) {
@@ -415,7 +410,6 @@ class MusicApiService {
             return tracks;
           }
         } else if (data is List) {
-          // Si c'est déjà une List, la traiter normalement
           return data.map((item) => item as Map<String, dynamic>).toList();
         } else {
           debugPrint('Unexpected data type: ${data.runtimeType}');

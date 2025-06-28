@@ -454,9 +454,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                         ),
                         onPressed: () async {
                           widget.onToggleFavorite();
-                          // Toggle the notifier value which will trigger a rebuild
-                          bool liked = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
-                          _isLikedNotifier.value = liked;
+                          _isLikedNotifier.value = !_isLikedNotifier.value;
                         },
                       );
                     },
