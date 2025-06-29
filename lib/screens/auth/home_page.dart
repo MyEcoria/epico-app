@@ -20,8 +20,10 @@ import 'package:epico/manage/navigation_helper.dart';
 import '../../theme.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
@@ -46,10 +48,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       try {
         final userInfo = await MusicApiService().userInfo(authToken);
         cache.setCacheValue('email', userInfo['email']);
-        // If auth token exists and user info is valid, navigate to listen page
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
-        );
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => MusicAppHomePage(songManager: songManager)),
+          );
+        }
       } catch (e) {
         debugPrint('Error fetching user info: $e');
       }
@@ -81,7 +84,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -90,31 +92,30 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ),
                 ],
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 'For epitech students',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                 ),
               ),
-              Spacer(),
-              // Buttons
+              const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  NavigationHelper.pushFade(context, EmailScreen());
+                  NavigationHelper.pushFade(context, const EmailScreen());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kAccentColor,
                   foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: Text('Sign up'),
+                child: const Text('Sign up'),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
                   NavigationHelper.pushFade(context, const LoginPage());
@@ -122,7 +123,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 style: TextButton.styleFrom(
                   foregroundColor: kAccentColor,
                 ),
-                child: Text('Log in'),
+                child: const Text('Log in'),
               ),
             ],
           ),

@@ -9,25 +9,57 @@ import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';
 import '../manage/widget_manage.dart';
-import '../theme.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// A page that displays information about a specific album.
+///
+/// It fetches album details and tracks using `MusicApiService` and allows
+/// playing the album or individual songs.
 class AlbumInfoPage extends StatefulWidget {
+  /// The ID of the album to display.
   final String albumId;
+
+  /// The song manager to handle song playback.
   final SongManager songManager;
+
+  /// Callback function when the back button is pressed.
   final VoidCallback? onBack;
-  const AlbumInfoPage({Key? key, required this.albumId, required this.songManager, this.onBack}) : super(key: key);
+  const AlbumInfoPage({required this.albumId, required this.songManager, this.onBack, super.key});
 
   @override
   State<AlbumInfoPage> createState() => _AlbumInfoPageState();
+
+  /// Creates the mutable state for this widget.
+  ///
+  /// The framework calls this method when it is about to build the widget
+  /// for the first time.
+  ///
+  /// Subclasses should override this method to return a newly created
+  /// instance of their associated [State] class:
+  ///
+  /// ```dart
+  /// @override
+  /// State<MyWidget> createState() => _MyWidgetState();
+  /// ```
 }
 
+/// State class for [AlbumInfoPage].
+///
+/// This class manages the state and logic for the [AlbumInfoPage],
+/// including fetching album data, handling loading and error states,
+/// and managing song playback within the album context.
 class _AlbumInfoPageState extends State<AlbumInfoPage> {
+  /// Stores the album data.
   Map<String, dynamic>? _album;
-  List<Map<String, dynamic>>? _album_tracks;
+  /// Stores the tracks of the album.
+  List<Map<String, dynamic>>? _albumTracks;
+  /// Indicates if the data is currently loading.
   bool _isLoading = true;
+  /// Stores any error message that occurred during data fetching.
   String? _errorMessage;
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  /// Secure storage for authentication cookies.
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  /// The authentication cookie.
   String? authCookie;
 
   @override
@@ -37,6 +69,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     _fetchAlbum();
   }
 
+  /// Loads the authentication cookie from secure storage.
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
     setState(() {
@@ -44,18 +77,19 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     });
   }
 
+  /// Fetches album information and tracks from the API.
   Future<void> _fetchAlbum() async {
     try {
       debugPrint('Fetching album with ID: ${widget.albumId}');
-      final data = await MusicApiService().getAlbumInfo(widget.albumId);
+      final Map<String, dynamic> data = await MusicApiService().getAlbumInfo(widget.albumId);
       debugPrint('Album data: $data');
       
-      final tracksData = await MusicApiService().getAlbumTracks(widget.albumId);
+      final List<Map<String, dynamic>> tracksData = await MusicApiService().getAlbumTracks(widget.albumId);
       debugPrint('Tracks data: $tracksData');
       
       setState(() {
         _album = data;
-        _album_tracks = tracksData;
+        _albumTracks = tracksData;
         _isLoading = false;
       });
     } catch (e) {
@@ -67,15 +101,19 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     }
   }
 
+  /// Refreshes the album data by re-fetching it from the API.
   Future<void> _refreshAlbum() async {
     await _fetchAlbum();
   }
 
+  /// Plays the entire album by adding all tracks to the playlist.
   void _playAlbum() {
-    if (_album_tracks == null || _album_tracks!.isEmpty) return;
+    if (_albumTracks == null || _albumTracks!.isEmpty) {
+      return;
+    }
     
-    final tracks = _album_tracks!;
-    final playlist = tracks.map<Map<String, dynamic>>((track) {
+    final List<Map<String, dynamic>> tracks = _albumTracks!;
+    final List<Map<String, dynamic>> playlist = tracks.map<Map<String, dynamic>>((Map<String, dynamic> track) {
       return {
         'title': track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
         'song': track['song'],
@@ -91,15 +129,25 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     }
   }
 
+  /// Returns the URL for the album cover image.
   String _getAlbumCoverUrl() {
-    final albumPicture = _album?["ALB_PICTURE"] ?? _album?["cover"];
+    final String? albumPicture = (_album?['ALB_PICTURE'] ?? _album?['cover']) as String?;
     if (albumPicture != null) {
-      return "https://cdn-images.dzcdn.net/images/cover/$albumPicture/500x500-000000-80-0-0.jpg";
+      return 'https://cdn-images.dzcdn.net/images/cover/$albumPicture/500x500-000000-80-0-0.jpg';
     }
     return 'https://via.placeholder.com/500x500?text=No+Image';
   }
 
-  void _playSong(String songUrl, {String name = "", String description = "", String pictureUrl = "", String artist = "", String songId = "", bool instant = true}) async {
+  /// Plays a single song.
+  ///
+  /// [songUrl] The URL of the song.
+  /// [name] The name of the song.
+  /// [description] The description of the song.
+  /// [pictureUrl] The URL of the song's cover art.
+  /// [artist] The artist of the song.
+  /// [songId] The ID of the song.
+  /// [instant] Whether to play the song instantly.
+  void _playSong(String songUrl, {String name = '', String description = '', String pictureUrl = '', String artist = '', String songId = '', bool instant = true}) async {
     await widget.songManager.togglePlaySong(
       name: name,
       description: description,
@@ -111,24 +159,25 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     );
   }
 
+  /// Formats a duration string (in seconds) into a "minutes:seconds" format.
   String _formatDuration(String duration) {
-    int seconds = int.tryParse(duration) ?? 0;
-    int minutes = seconds ~/ 60;
-    int remainingSeconds = seconds % 60;
-    return '${minutes}:${remainingSeconds.toString().padLeft(2, '0')}';
+    final int seconds = int.tryParse(duration) ?? 0;
+    final int minutes = seconds ~/ 60;
+    final int remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isPlaying = widget.songManager.isPlaying();
+    
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (widget.onBack != null) {
-          widget.onBack!();
-          return false;
+    return PopScope(
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          if (widget.onBack != null) {
+            widget.onBack!();
+          }
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -150,10 +199,10 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                            children: <Widget>[
                               const Text('Error loading album',
                                   style: TextStyle(color: Colors.white, fontSize: 18)),
-                              if (_errorMessage != null) ...[
+                              if (_errorMessage != null) ...<Widget>[
                                 const SizedBox(height: 16),
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -184,7 +233,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 Container(
                                   height: 200,
                                   decoration: BoxDecoration(
@@ -197,7 +246,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  _album!["ALB_TITLE"] ?? _album!["title"] ?? 'Unknown Album',
+                                  _album!['ALB_TITLE'] ?? _album!['title'] ?? 'Unknown Album',
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
@@ -206,7 +255,7 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  _album!["ART_NAME"] ?? _album!["artist"] ?? 'Unknown Artist',
+                                  _album!['ART_NAME'] ?? _album!['artist'] ?? 'Unknown Artist',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.white70,
@@ -232,13 +281,13 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                if (_album_tracks != null && _album_tracks!.isNotEmpty)
+                                if (_albumTracks != null && _albumTracks!.isNotEmpty)
                                   ListView.builder(
                                     shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: _album_tracks!.length,
-                                    itemBuilder: (context, index) {
-                                      final track = _album_tracks![index];
+                                    itemCount: _albumTracks!.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final Map<String, dynamic> track = _albumTracks![index];
                                       debugPrint('Track data: $track');
                                       return ListTile(
                                         leading: const Icon(Icons.music_note, color: Colors.white),
@@ -253,9 +302,9 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                                         onTap: () => _playSong(
                                           track['song'],
                                           name: track['SNG_TITLE'] ?? track['title'] ?? 'Unknown',
-                                          description: _album!["ALB_TITLE"] ?? _album!["title"] ?? '',
+                                          description: _album!['ALB_TITLE'] ?? _album!['title'] ?? '',
                                           pictureUrl: _getAlbumCoverUrl(),
-                                          artist: track['ART_NAME'] ?? track['artist'] ?? _album?["ART_NAME"] ?? _album?["artist"] ?? 'Unknown',
+                                          artist: track['ART_NAME'] ?? track['artist'] ?? _album?['ART_NAME'] ?? _album?['artist'] ?? 'Unknown',
                                           songId: track['SNG_ID'] ?? track['song_id'] ?? track['id'] ?? '',
                                         ),
                                       );
@@ -282,24 +331,29 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
               bottom: 20,
               child: StreamBuilder<bool>(
                 stream: widget.songManager.isPlayingStream,
-                builder: (context, snapshot) {
-                  final isPlaying = snapshot.data ?? false;
-                  final isPaused = widget.songManager.isPaused();
+                builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                  final bool isPlaying = snapshot.data ?? false;
+                  final bool isPaused = widget.songManager.isPaused();
                   if (!isPlaying && !isPaused) {
                     return const SizedBox.shrink();
                   }
                   return StreamBuilder<Map<String, dynamic>>(
                     stream: widget.songManager.songStateStream,
-                    builder: (context, songSnapshot) {
-                      final currentSongState = songSnapshot.data ?? widget.songManager.getSongState();
+                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> songSnapshot) {
+                      final Map<String, dynamic> currentSongState = songSnapshot.data ?? widget.songManager.getSongState();
                       return AudioPlayerWidget(
                         songManager: widget.songManager,
-                        currentSongTitle: currentSongState['name'] ?? "Unknown",
-                        currentArtist: currentSongState['artist'] ?? "Unknown",
-                        albumArtUrl: currentSongState['pictureUrl'] ?? "https://via.placeholder.com/150",
+                        currentSongTitle: currentSongState['name'] ?? 'Unknown',
+                        currentArtist: currentSongState['artist'] ?? 'Unknown',
+                        albumArtUrl: currentSongState['pictureUrl'] ?? 'https://via.placeholder.com/150',
                         duration: const Duration(minutes: 3, seconds: 45),
+                        isPlaying: isPlaying,
+                        lyricsExcerpt: '',
+                        isFavorite: false,
+                        nextSongTitle: '',
+                        nextSongArtist: '',
                         onPlayPause: () {
-                          final songState = widget.songManager.getSongState();
+                          final Map<String, dynamic> songState = widget.songManager.getSongState();
                           widget.songManager.togglePlaySong(
                             name: songState['name'] ?? '',
                             description: songState['description'] ?? '',
@@ -309,13 +363,8 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                             songId: songState['songId'] ?? '',
                           );
                         },
-                        lyricsExcerpt: '',
-                        isFavorite: false,
                         onToggleFavorite: () {},
                         onShare: () {},
-                        isPlaying: isPlaying,
-                        nextSongTitle: '',
-                        nextSongArtist: '',
                         onNext: () {},
                         onPrevious: () {},
                       );

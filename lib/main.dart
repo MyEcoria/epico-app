@@ -20,18 +20,24 @@ import 'manage/api_manage.dart';
 import 'manage/cache_manage.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
-  MyAppState createState() => MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MyAppState extends State<MyApp> {
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+class _MyAppState extends State<MyApp> {
+  /// Secure storage for authentication cookies.
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  /// Indicates if the app is currently loading authentication status.
   bool _isLoading = true;
+  /// Indicates if the user is authenticated.
   bool _isAuthenticated = false;
+  /// Cache service for storing application data.
   CacheService cache = CacheService();
 
   @override
@@ -73,8 +79,8 @@ class MyAppState extends State<MyApp> {
       title: 'Epico',
       theme: appTheme,
       home: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _isAuthenticated ? MusicAppHomePage(songManager: SongManager()) : HomePage(),
+          ? const Center(child: CircularProgressIndicator())
+          : _isAuthenticated ? MusicAppHomePage(songManager: SongManager()) : const HomePage(),
     );
   }
 }

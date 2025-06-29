@@ -16,14 +16,14 @@ class LikedSongsPage extends StatefulWidget {
   final VoidCallback onBack;
 
   const LikedSongsPage({
-    Key? key,
     required this.songManager,
     required this.authCookie,
     required this.onBack,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _LikedSongsPageState createState() => _LikedSongsPageState();
+  State<LikedSongsPage> createState() => _LikedSongsPageState();
 }
 
 class _LikedSongsPageState extends State<LikedSongsPage> {
@@ -77,15 +77,18 @@ class _LikedSongsPageState extends State<LikedSongsPage> {
     int seconds = int.tryParse(duration) ?? 0;
     int minutes = seconds ~/ 60;
     int remaining = seconds % 60;
-    return '${minutes}:${remaining.toString().padLeft(2, '0')}';
+    return '$minutes:${remaining.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          return;
+        }
         widget.onBack();
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(

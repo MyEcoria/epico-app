@@ -14,7 +14,6 @@ import 'song_manage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
 import 'dart:ui';
-import 'package:palette_generator/palette_generator.dart';
 import 'dart:math';
 
 class AudioPlayerWidget extends StatefulWidget {
@@ -35,7 +34,6 @@ class AudioPlayerWidget extends StatefulWidget {
   final VoidCallback onPrevious;
 
   const AudioPlayerWidget({
-    super.key,
     required this.songManager,
     required this.currentSongTitle,
     required this.currentArtist,
@@ -51,6 +49,7 @@ class AudioPlayerWidget extends StatefulWidget {
     required this.nextSongArtist,
     required this.onNext,
     required this.onPrevious,
+    super.key,
   });
 
   @override
@@ -63,19 +62,18 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   double _dragValue = 0.0;
   bool _isDragging = false;
   late AudioPlayer _audioPlayer;
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   String? authCookie;
   final ValueNotifier<bool> _isLikedNotifier = ValueNotifier<bool>(false);
   late AnimationController _pulseController;
   bool _isExpanded = false;
-  Color _dominantColor = kAccentColor;
+  final Color _dominantColor = kAccentColor;
 
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
     authCookie = value;
     if (authCookie != null && mounted) {
-      // Initialize _isLiked after loading the cookie
-      final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!);
+      final initialLike = await MusicApiService().isLike(widget.songManager.getSongState()['songId'], authCookie!);
       setState(() {
         _isLikedNotifier.value = initialLike;
       });
@@ -89,20 +87,17 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
     _audioPlayer = widget.songManager.getAudioPlayer();
     _setupPositionListener();
     _setupSongChangeListener();
-    _updateDominantColor();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(seconds: 800),
     )..repeat(reverse: true);
   }
 
   void _setupSongChangeListener() {
     widget.songManager.songStateStream.listen((_) {
-      // Reset isLiked to false when song changes
       _isLikedNotifier.value = false;
-      // Then check with API if the new song is liked
       if (authCookie != null) {
-        MusicApiService().isLike(widget.songManager.getSongState()["songId"], authCookie!)
+        MusicApiService().isLike(widget.songManager.getSongState()['songId'], authCookie!)
             .then((liked) {
           if (mounted) {
             setState(() {
@@ -111,22 +106,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
           }
         });
       }
-      _updateDominantColor();
     });
-  }
-
-  Future<void> _updateDominantColor() async {
-    final pictureUrl = widget.songManager.getSongState()['pictureUrl'];
-    if (pictureUrl != null && pictureUrl.isNotEmpty) {
-      final palette = await PaletteGenerator.fromImageProvider(
-        NetworkImage(pictureUrl),
-      );
-      if (mounted) {
-        setState(() {
-          _dominantColor = palette.dominantColor?.color ?? kAccentColor;
-        });
-      }
-    }
   }
 
   void _setupPositionListener() {
@@ -154,7 +134,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$minutes:$seconds";
+    return '$minutes:$seconds';
   }
 
   void _showExpandedPlayer(BuildContext context) {
@@ -192,7 +172,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
           builder: (context, pausedSnapshot) {
             bool isPaused = pausedSnapshot.data ?? false;
             if (!isPlaying && !isPaused) {
-              return SizedBox.shrink();
+              return const SizedBox.shrink();
             } else {
               return GestureDetector(
                 onTap: () {
@@ -211,12 +191,12 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                     padding: const EdgeInsets.symmetric(horizontal: 5),
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withAlpha((0.7 * 255).toInt()),
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: _dominantColor.withOpacity(0.6)),
+                      border: Border.all(color: _dominantColor.withAlpha((0.6 * 255).toInt())),
                       boxShadow: [
                         BoxShadow(
-                          color: _dominantColor.withOpacity(0.3),
+                          color: _dominantColor.withAlpha((0.3 * 255).toInt()),
                           blurRadius: 8,
                           spreadRadius: 1,
                         ),
@@ -241,7 +221,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _dominantColor.withOpacity(0.4 * (1 - _pulseController.value)),
+                                      color: _dominantColor.withAlpha((0.4 * (1 - _pulseController.value) * 255).toInt()),
                                       blurRadius: 6 + 4 * _pulseController.value,
                                       spreadRadius: 1 + _pulseController.value,
                                     ),
@@ -325,7 +305,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
             ),
             boxShadow: [
               BoxShadow(
-                color: _dominantColor.withOpacity(0.4),
+                color: _dominantColor.withAlpha((0.4 * 255).toInt()),
                 blurRadius: 20,
                 spreadRadius: 5,
               ),
@@ -342,7 +322,6 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                     icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  // Missing element here - maybe a title or another action button
                   const SizedBox.shrink(),
                 ],
               ),
@@ -377,19 +356,19 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                             border: Border.all(color: _dominantColor, width: 4),
                             boxShadow: [
                               BoxShadow(
-                                color: _dominantColor.withOpacity(0.3 + 0.1 * (0.5 + 0.5 * sin(waveOffset))),
+                                color: _dominantColor.withAlpha(((0.3 + 0.1 * (0.5 + 0.5 * sin(waveOffset))) * 255).toInt()),
                                 blurRadius: 25 + 8 * (0.5 + 0.5 * sin(waveOffset + 0.5)),
                                 spreadRadius: 6 + 3 * (0.5 + 0.5 * sin(waveOffset + 1)),
                                 offset: Offset(2 * sin(waveOffset + 0.3), 12 + 5 * sin(waveOffset + 0.7)),
                               ),
                               BoxShadow(
-                                color: _dominantColor.withOpacity(0.2 + 0.08 * (0.5 + 0.5 * sin(waveOffset + 1.5))),
+                                color: _dominantColor.withAlpha(((0.2 + 0.08 * (0.5 + 0.5 * sin(waveOffset + 1.5))) * 255).toInt()),
                                 blurRadius: 40 + 12 * (0.5 + 0.5 * sin(waveOffset + 2)),
                                 spreadRadius: 8 + 4 * (0.5 + 0.5 * sin(waveOffset + 2.5)),
                                 offset: Offset(3 * sin(waveOffset + 1.8), 18 + 7 * sin(waveOffset + 3)),
                               ),
                               BoxShadow(
-                                color: _dominantColor.withOpacity(0.15 + 0.06 * (0.5 + 0.5 * sin(waveOffset + 3))),
+                                color: _dominantColor.withAlpha(((0.15 + 0.06 * (0.5 + 0.5 * sin(waveOffset + 3))) * 255).toInt()),
                                 blurRadius: 55 + 15 * (0.5 + 0.5 * sin(waveOffset + 3.5)),
                                 spreadRadius: 10 + 5 * (0.5 + 0.5 * sin(waveOffset + 4)),
                                 offset: Offset(4 * sin(waveOffset + 4.2), 22 + 8 * sin(waveOffset + 4.8)),
@@ -490,7 +469,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
               activeTrackColor: Colors.white,
               inactiveTrackColor: Colors.grey[800],
               thumbColor: Colors.white,
-              overlayColor: Colors.white.withOpacity(0.2),
+              overlayColor: Colors.white.withAlpha((0.2 * 255).toInt()),
             ),
             child: Slider(
               value: _isDragging
@@ -543,7 +522,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                         color: Colors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withAlpha((0.2 * 255).toInt()),
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),

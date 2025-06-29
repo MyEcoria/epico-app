@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: EmailScreen(),
     );
@@ -41,7 +41,7 @@ class LowerCaseTextFormatter extends TextInputFormatter {
 }
 
 class EmailScreen extends StatefulWidget {
-  const EmailScreen({Key? key}) : super(key: key);
+  const EmailScreen({super.key});
 
   @override
   State<EmailScreen> createState() => _EmailScreenState();
@@ -79,7 +79,7 @@ class _EmailScreenState extends State<EmailScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -93,7 +93,7 @@ class _EmailScreenState extends State<EmailScreen> {
             const SizedBox(height: 20),
             const Center(
               child: Text(
-                "Email",
+                'Email',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 30,
@@ -136,13 +136,13 @@ class _EmailScreenState extends State<EmailScreen> {
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kAccentColor,
-                  disabledBackgroundColor: kAccentColor.withOpacity(0.5),
+                  disabledBackgroundColor: kAccentColor.withAlpha(128),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: const Text(
-                  "Continue",
+                  'Continue',
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),

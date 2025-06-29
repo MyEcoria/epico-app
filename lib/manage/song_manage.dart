@@ -12,8 +12,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_manage.dart';
 
 class SongManager {
+  static final SongManager _instance = SongManager._internal();
+  factory SongManager() {
+    return _instance;
+  }
+  SongManager._internal();
+
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   static bool playing = false;
   bool _isPlaying = false;
   String? _currentSongName;
@@ -121,7 +127,7 @@ class SongManager {
         element['cover'] is String && element['auteur'] is String && element['song_id'] is String) {
       addToQueue(
         name: element['title'],
-        description: "",
+        description: '',
         songUrl: element['song'],
         pictureUrl: element['cover'],
         artist: element['auteur'],

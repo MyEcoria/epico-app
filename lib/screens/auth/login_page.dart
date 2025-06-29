@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: LoginPage(),
     );
@@ -57,10 +57,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _hasMinLength = false;
   bool _hasDigit = false;
   bool _hasSpecialChar = false;
-  String _passwordStrength = "";
+  String _passwordStrength = '';
   bool _isEmailValid = false;
   final _secureStorage = const FlutterSecureStorage();
-  String? _cookieValue;
   OverlayEntry? _overlayEntry;
 
   @override
@@ -68,19 +67,10 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _passwordController.addListener(_validatePassword);
     _emailController.addListener(_validateEmail);
-    _loadCookie();
-  }
-
-  Future<void> _loadCookie() async {
-    String? value = await _secureStorage.read(key: 'auth');
-    setState(() {
-      _cookieValue = value;
-    });
   }
 
   Future<void> _storeCookie(String value) async {
     await _secureStorage.write(key: 'auth', value: value);
-    _loadCookie();
   }
 
   @override
@@ -108,13 +98,13 @@ class _LoginPageState extends State<LoginPage> {
       _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
 
       if (password.isEmpty) {
-        _passwordStrength = "";
+        _passwordStrength = '';
       } else if (_hasMinLength && _hasDigit && _hasSpecialChar) {
-        _passwordStrength = "Strong";
+        _passwordStrength = 'Strong';
       } else if (_hasMinLength) {
-        _passwordStrength = "Medium";
+        _passwordStrength = 'Medium';
       } else {
-        _passwordStrength = "Weak";
+        _passwordStrength = 'Weak';
       }
     });
   }
@@ -122,33 +112,36 @@ class _LoginPageState extends State<LoginPage> {
   bool get _isPasswordValid => _hasMinLength && _hasDigit && _hasSpecialChar;
   bool get _isFormValid => _isPasswordValid && _isEmailValid;
 
-  void _showErrorMessage(String message) {
+  void _showErrorMessage(BuildContext context, String message) {
+    if (!mounted) {
+      return;
+    }
     _hideErrorMessage();
     _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).viewPadding.top,
+      builder: (overlayContext) => Positioned(
+        top: MediaQuery.of(overlayContext).viewPadding.top,
         left: 0,
         right: 0,
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.black,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.error, color: Colors.red),
-                SizedBox(width: 8),
+                const Icon(Icons.error, color: Colors.red),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     message,
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.close, color: Colors.white),
                   onPressed: _hideErrorMessage,
                 ),
               ],
@@ -157,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-    Overlay.of(context)?.insert(_overlayEntry!);
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   void _hideErrorMessage() {
@@ -173,9 +166,9 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            NavigationHelper.pushFade(context, HomePage());
+            NavigationHelper.pushFade(context, const HomePage());
           },
         ),
       ),
@@ -186,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             const SizedBox(height: 20),
             const Text(
-              "Login to your account",
+              'Login to your account',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
@@ -204,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey[800],
-                hintText: "Your email",
+                hintText: 'Your email',
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -220,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey[800],
-                hintText: "Your password",
+                hintText: 'Your password',
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -241,9 +234,9 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 10),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Color(0xFF1C1C1C),
+                color: const Color(0xFF1C1C1C),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -252,37 +245,37 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Your password must include",
+                        const Text(
+                          'Your password must include',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        _buildRequirementRow("At least 8 characters", _hasMinLength),
-                        SizedBox(height: 4),
-                        _buildRequirementRow("At least 1 number", _hasDigit),
-                        SizedBox(height: 4),
-                        _buildRequirementRow("At least 1 special character", _hasSpecialChar),
+                        const SizedBox(height: 8),
+                        _buildRequirementRow('At least 8 characters', _hasMinLength),
+                        const SizedBox(height: 4),
+                        _buildRequirementRow('At least 1 number', _hasDigit),
+                        const SizedBox(height: 4),
+                        _buildRequirementRow('At least 1 special character', _hasSpecialChar),
                       ],
                     ),
                   ),
-                  _passwordStrength != ""
+                  _passwordStrength != ''
                       ? Text(
                           _passwordStrength,
                           style: TextStyle(
-                            color: _passwordStrength == "Strong"
+                            color: _passwordStrength == 'Strong'
                                 ? Colors.green
-                                : _passwordStrength == "Medium"
+                                : _passwordStrength == 'Medium'
                                     ? Colors.orange
                                     : Colors.red,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         )
-                      : SizedBox(),
+                      : const SizedBox(),
                 ],
               ),
             ),
@@ -293,29 +286,45 @@ class _LoginPageState extends State<LoginPage> {
               child: ElevatedButton(
                 onPressed: _isFormValid
                   ? () async {
+                    final currentContext = context;
+
                     try {
                       final apiService = MusicApiService();
                       final response = await apiService.loginUser(_emailController.text, _passwordController.text);
+
+                      if (!currentContext.mounted) {
+                        return;
+                      }
+
                       if (response['status'] == 'ok') {
-                        _storeCookie(response['cookie']);
-                        NavigationHelper.pushFade(context, HomePage());
+                        await _storeCookie(response['cookie']);
+                        if (!currentContext.mounted) {
+                          return;
+                        }
+                        NavigationHelper.pushFade(currentContext, const HomePage());
                       } else {
-                      _showErrorMessage('Failed to create user: ${response['message']}');
+                        if (!currentContext.mounted) {
+                          return;
+                        }
+                        _showErrorMessage(currentContext, 'Failed to create user: ${response['message']}');
                       }
                     } catch (e) {
-                      _showErrorMessage('Error: $e');
+                      if (!currentContext.mounted) {
+                        return;
+                      }
+                      _showErrorMessage(currentContext, 'Error: $e');
                     }
                     }
                   : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kAccentColor,
-                  disabledBackgroundColor: kAccentColor.withOpacity(0.5),
+                  disabledBackgroundColor: kAccentColor.withAlpha(128),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: const Text(
-                  "Continue",
+                  'Continue',
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
@@ -340,13 +349,13 @@ class _LoginPageState extends State<LoginPage> {
                 : Border.all(color: Colors.grey, width: 1),
           ),
           child: isValid
-              ? Icon(Icons.check, size: 14, color: Colors.white)
+              ? const Icon(Icons.check, size: 14, color: Colors.white)
               : null,
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 14,
           ),
