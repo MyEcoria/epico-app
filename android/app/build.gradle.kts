@@ -41,8 +41,10 @@ android {
 
     buildTypes {
         release {
-            // Use the release signing config for release builds
-            signingConfig = signingConfigs.getByName("release")
+            val flutterSigningEnabled = project.findProperty("FLUTTER_SIGNING_ENABLED") == "true"
+            if (flutterSigningEnabled) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }

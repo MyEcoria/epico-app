@@ -47,3 +47,5 @@ app.*.map.json
 pubspec.lock
 
 .vscode
+
+epico_key.jks
