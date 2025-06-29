@@ -1,4 +1,4 @@
-package com.example.deezer_app
+package com.epico
 
 import io.flutter.embedding.android.FlutterActivity
 
