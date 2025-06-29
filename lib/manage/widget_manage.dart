@@ -67,7 +67,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   final ValueNotifier<bool> _isLikedNotifier = ValueNotifier<bool>(false);
   late AnimationController _pulseController;
   bool _isExpanded = false;
-  Color _dominantColor = kAccentColor;
+  final Color _dominantColor = kAccentColor;
 
   Future<void> _loadCookie() async {
     String? value = await _secureStorage.read(key: 'auth');
