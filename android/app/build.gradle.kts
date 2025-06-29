@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.deezer_app"
+    namespace = "com.epico"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.deezer_app"
+        applicationId = "com.epico"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -31,11 +30,19 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "epico"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            storeFile = file("epico_key.jks")
+            storePassword = System.getenv("STORE_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Use the release signing config for release builds
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
