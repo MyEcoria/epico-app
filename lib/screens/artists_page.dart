@@ -8,8 +8,6 @@
 import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';
-import '../theme.dart';
-import 'artist_info_page.dart';
 
 class ArtistsPage extends StatefulWidget {
   final SongManager songManager;
@@ -18,15 +16,15 @@ class ArtistsPage extends StatefulWidget {
   final Function(String id) onOpenArtist;
 
   const ArtistsPage({
-    Key? key,
     required this.songManager,
     required this.authCookie,
     required this.onBack,
     required this.onOpenArtist,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _ArtistsPageState createState() => _ArtistsPageState();
+  State<ArtistsPage> createState() => _ArtistsPageState();
 }
 
 class _ArtistsPageState extends State<ArtistsPage> {
@@ -67,10 +65,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          return;
+        }
         widget.onBack();
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -117,4 +118,3 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 }
-

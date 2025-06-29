@@ -9,13 +9,14 @@
 */
 
 import 'dart:convert';
-import 'package:flutter/material.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class MusicApiService {
   static const String baseUrl = 'http://82.66.224.39:8000';
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   Future<Map<String, dynamic>> getMe() async {
     try {
@@ -227,11 +228,11 @@ class MusicApiService {
     }
   }
 
-  Future<Map<String, dynamic>> getSearch(String cookie, String name) async {
+  Future<Map<String, dynamic>> getSearch(String cookie, String name, String token) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/music/search'),
-        headers: {'Content-Type': 'application/json', 'token': cookie},
+        headers: {'Content-Type': 'application/json', 'token': token},
         body: json.encode({'name': name}),
       );
 
@@ -268,7 +269,7 @@ class MusicApiService {
       );
       if (response.statusCode == 200) {
         final rep = json.decode(response.body);
-        if (rep["liked"] == "true") {
+        if (rep['liked'] == 'true') {
           return true;
         } else {
           return false;
@@ -304,7 +305,7 @@ class MusicApiService {
         headers: {'Content-Type': 'application/json', 'token': token},
       );
       if (response.statusCode == 200) {
-        return json.decode(response.body)["count"].toString();
+        return json.decode(response.body)['count'].toString();
       } else {
         throw Exception('Failed to create auth user: ${response.statusCode}');
       }
@@ -320,7 +321,7 @@ class MusicApiService {
         headers: {'Content-Type': 'application/json', 'token': token},
       );
       if (response.statusCode == 200) {
-        return json.decode(response.body)["count"].toString();
+        return json.decode(response.body)['count'].toString();
       } else {
         throw Exception('Failed to create auth user: ${response.statusCode}');
       }

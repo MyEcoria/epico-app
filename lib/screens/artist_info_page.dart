@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import '../manage/api_manage.dart';
 import '../manage/song_manage.dart';
-import '../theme.dart';
+
 
 class ArtistInfoPage extends StatefulWidget {
   final String artistId;
@@ -16,11 +16,11 @@ class ArtistInfoPage extends StatefulWidget {
   final VoidCallback onBack;
 
   const ArtistInfoPage({
-    Key? key,
     required this.artistId,
     required this.songManager,
     required this.onBack,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ArtistInfoPage> createState() => _ArtistInfoPageState();
@@ -40,7 +40,7 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
   Future<void> _fetchData() async {
     try {
       final artistData = await MusicApiService().getArtistInfo(widget.artistId);
-      final tracksData = await MusicApiService().getArtistTracks(artistData["ART_NAME"] ?? artistData["name"] ?? 'Unknown');
+      final tracksData = await MusicApiService().getArtistTracks(artistData['ART_NAME'] ?? artistData['name'] ?? 'Unknown');
 
       setState(() {
         _artist = artistData;
@@ -62,11 +62,13 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
     int seconds = int.tryParse(duration) ?? 0;
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
-    return '${minutes}:${remainingSeconds.toString().padLeft(2, '0')}';
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   void _playAllTracks() {
-    if (_tracks == null || _tracks!.isEmpty) return;
+    if (_tracks == null || _tracks!.isEmpty) {
+      return;
+    }
     widget.songManager.lunchPlaylist(_tracks!.map((track) => {
       'title': track['title'] ?? 'Unknown',
       'song': track['song'] ?? '',
@@ -90,10 +92,13 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          return;
+        }
         widget.onBack();
-        return false;
       },
       child: Scaffold(
       appBar: AppBar(
@@ -119,17 +124,17 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                     child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_artist!["ART_PICTURE"] != null ||
-                          _artist!["picture"] != null)
+                      if (_artist!['ART_PICTURE'] != null ||
+                          _artist!['picture'] != null)
                         Container(
                           height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             image: DecorationImage(
                               image: NetworkImage(
-                                _artist!["ART_PICTURE"] != null
-                                    ? "https://cdn-images.dzcdn.net/images/artist/${_artist!["ART_PICTURE"]}/500x500-000000-80-0-0.jpg"
-                                    : _artist!["picture"] ?? '',
+                                _artist!['ART_PICTURE'] != null
+                                    ? 'https://cdn-images.dzcdn.net/images/artist/${_artist!['ART_PICTURE']}/500x500-000000-80-0-0.jpg'
+                                    : _artist!['picture'] ?? '',
                               ),
                               fit: BoxFit.cover,
                             ),
@@ -137,23 +142,23 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                         ),
                       const SizedBox(height: 16),
                       Text(
-                        _artist!["ART_NAME"] ?? _artist!["name"] ?? 'Unknown',
+                        _artist!['ART_NAME'] ?? _artist!['name'] ?? 'Unknown',
                         style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                       ),
                       const SizedBox(height: 8),
-                      if (_artist!["NB_FAN"] != null)
-                        Text('${_artist!["NB_FAN"]} fans',
+                      if (_artist!['NB_FAN'] != null)
+                        Text('${_artist!['NB_FAN']} fans',
                             style: const TextStyle(color: Colors.white70, fontSize: 16)),
-                      if (_artist!["FACEBOOK"] != null)
+                      if (_artist!['FACEBOOK'] != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text(_artist!["FACEBOOK"], style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                          child: Text(_artist!['FACEBOOK'], style: const TextStyle(color: Colors.white54, fontSize: 14)),
                         ),
-                      if (_artist!["TWITTER"] != null)
-                        Text(_artist!["TWITTER"],
+                      if (_artist!['TWITTER'] != null)
+                        Text(_artist!['TWITTER'],
                             style: const TextStyle(color: Colors.white54, fontSize: 14)),
                       if (_tracks != null && _tracks!.isNotEmpty)
                         Padding(
@@ -206,7 +211,7 @@ class _ArtistInfoPageState extends State<ArtistInfoPage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text(
-                                track['auteur'] ?? _artist?["ART_NAME"] ?? _artist?["name"] ?? 'Unknown',
+                                track['auteur'] ?? _artist?['ART_NAME'] ?? _artist?['name'] ?? 'Unknown',
                                 style: const TextStyle(color: Colors.white70),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

@@ -13,6 +13,8 @@ import '../../theme.dart';
 import '../../manage/navigation_helper.dart';
 
 class ConfirmationPage extends StatelessWidget {
+  const ConfirmationPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +27,7 @@ class ConfirmationPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'Mail sent :)',
                       style: TextStyle(
                         color: Colors.white, 
@@ -33,7 +35,7 @@ class ConfirmationPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     SvgPicture.asset(
                       'assets/undrawable/mail.svg',
                       height: 150,
@@ -44,7 +46,7 @@ class ConfirmationPage extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
@@ -59,7 +61,7 @@ class ConfirmationPage extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Login',
                     style: TextStyle(
                       fontSize: 16,

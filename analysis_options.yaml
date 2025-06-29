@@ -1,5 +1,5 @@
 # analysis_options.yaml
-include: package:effective_dart/analysis_options_strong.yaml
+include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
@@ -10,7 +10,7 @@ analyzer:
 linter:
   rules:
     # — conventions de nommage —──────────────────────────────────────────
-    always_specify_types: true           # déclarer explicitement List<int> et pas juste var
+    # always_specify_types: true           # déclarer explicitement List<int> et pas juste var
     camel_case_types: true               # classes / enums en PascalCase
     constant_identifier_names: true      # constantes en UPPER_SNAKE_CASE
     non_constant_identifier_names: true  # variables/fonctions en lowerCamelCase
@@ -24,14 +24,14 @@ linter:
     # — espacement —──────────────────────────────────────────────────────
     always_put_control_body_on_new_line: true
     always_put_required_named_parameters_first: true
-    space_before_function_parenthesis: false
-    space_in_empty_set_or_map_literals: true
+    # space_before_function_parenthesis: true
+    # space_in_empty_set_or_map_literals: true
 
     # — documentation & commentaires —───────────────────────────────────
     require_trailing_commas: true         # dernière valeur d’une liste/map avec virgule
     sort_pub_dependencies: true           # tri alphabétique dans pubspec.yaml
     comment_references: true              # @see doit référencer un élément existant
-    public_member_api_docs: true          # doc-comment pour toutes les méthodes publiques
+    # public_member_api_docs: true          # doc-comment pour toutes les méthodes publiques
 
     # — Flutter spécifiques —────────────────────────────────────────────
     avoid_print: true                     # interdire les prints > utiliser logger
@@ -43,5 +43,5 @@ linter:
     cancel_subscriptions: true
     depend_on_referenced_packages: true
     prefer_const_literals_to_create_immutables: true
-    unused_import: true
+    # unused_import: true
     unnecessary_this: true

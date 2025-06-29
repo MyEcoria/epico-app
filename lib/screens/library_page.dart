@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import '../manage/song_manage.dart';
 import '../manage/api_manage.dart';
-import '../theme.dart';
 import 'liked_songs_page.dart';
 import 'artists_page.dart';
 
@@ -17,10 +16,10 @@ class LibraryPage extends StatefulWidget {
   final String? authCookie;
   final Function(String id) onArtistSelected;
 
-  const LibraryPage({Key? key, required this.songManager, this.authCookie, required this.onArtistSelected}) : super(key: key);
+  const LibraryPage({required this.songManager, required this.onArtistSelected, this.authCookie, super.key});
 
   @override
-  _LibraryPageState createState() => _LibraryPageState();
+  State<LibraryPage> createState() => _LibraryPageState();
 }
 
 class _LibraryPageState extends State<LibraryPage> {
@@ -93,10 +92,10 @@ class _LibraryPageState extends State<LibraryPage> {
     widget.songManager.togglePlaySong(
       name: track['title'] ?? 'Unknown Title',
       description: 'From Your Library',
-      songUrl: track['song'] ?? "https://dl.sndup.net/q4ksm/Quack%20Quest.mp3",
+      songUrl: track['song'] ?? 'https://dl.sndup.net/q4ksm/Quack%20Quest.mp3',
       pictureUrl: track['cover'] ?? 'assets/caca.jpg',
       artist: track['auteur'] ?? 'Unknown Artist',
-      songId: track['song_id'] ?? "",
+      songId: track['song_id'] ?? '',
       instant: true,
     );
   }
@@ -124,13 +123,15 @@ class _LibraryPageState extends State<LibraryPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: _pageIndex == 0,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          return;
+        }
         if (_pageIndex != 0) {
           setState(() => _pageIndex = 0);
-          return false;
         }
-        return true;
       },
       child: Scaffold(
       backgroundColor: Colors.black,
@@ -154,7 +155,7 @@ class _LibraryPageState extends State<LibraryPage> {
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   childAspectRatio: 1.8, // Ajuste le ratio
                   mainAxisExtent: 100, // Hauteur fixe pour éviter l’overflow
