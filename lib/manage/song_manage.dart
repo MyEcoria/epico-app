@@ -97,7 +97,35 @@ class SongManager {
         instant: true,
       );
     } else {
-      debugPrint('No more songs in the queue.');
+      debugPrint('No more songs in the queue. Fetching similar song.');
+      if (_currentSongId != null) {
+        try {
+          final similarSong = await MusicApiService().getSimilarSong(_currentSongId!);
+        final insertIndex = _queue.isEmpty ? 0 : _queueIndex + 1;
+        _queue.insert(insertIndex, {
+          'name': similarSong['title'],
+          'description': '',
+          'songUrl': similarSong['song'],
+          'pictureUrl': similarSong['cover'],
+          'artist': similarSong['auteur'],
+          'songId': similarSong['song_id'],
+        });
+        _queueIndex = insertIndex;
+        await togglePlaySong(
+          name: _queue[_queueIndex]['name'],
+          description: _queue[_queueIndex]['description'],
+          songUrl: _queue[_queueIndex]['songUrl'],
+          pictureUrl: _queue[_queueIndex]['pictureUrl'],
+          artist: _queue[_queueIndex]['artist'],
+          songId: _queue[_queueIndex]['songId'],
+          instant: true,
+        );
+        } catch (e) {
+          debugPrint('Error fetching similar song: $e');
+        }
+      } else {
+        debugPrint('No current song ID to fetch similar songs.');
+      }
     }
   }
 
