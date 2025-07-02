@@ -18,7 +18,7 @@ jobs:
             os: ubuntu-latest
             build_cmd: flutter build apk --release
             artifact: build/app/outputs/flutter-apk/app-release.apk
-            asset: Epico-android.apk
+            asset: Epico_android.apk
           - platform: windows
             os: windows-latest
             build_cmd: flutter build windows --release
@@ -30,7 +30,7 @@ jobs:
               flutter build macos --release
               ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/*.app app-macos.zip
             artifact: app-macos.zip
-            asset: Epico-macos.zip
+            asset: Epico_macos.zip
           - platform: linux
             os: ubuntu-latest
             setup: |
