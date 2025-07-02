@@ -145,6 +145,39 @@ class SongManager {
     );
   }
 
+  Future<void> similarSong() async {
+    if (_currentSongId == null) {
+      debugPrint('No current song to find a similar one.');
+      return;
+    }
+    try {
+      final similarSongData = await MusicApiService().getSimilarSong(_currentSongId!);
+      
+      final insertIndex = _queueIndex + 1;
+      _queue.insert(insertIndex, {
+        'name': similarSongData['title'],
+        'description': '',
+        'songUrl': similarSongData['song'],
+        'pictureUrl': similarSongData['cover'],
+        'artist': similarSongData['auteur'],
+        'songId': similarSongData['song_id'],
+      });
+      _queueIndex = insertIndex;
+
+      await togglePlaySong(
+        name: _queue[_queueIndex]['name'],
+        description: _queue[_queueIndex]['description'],
+        songUrl: _queue[_queueIndex]['songUrl'],
+        pictureUrl: _queue[_queueIndex]['pictureUrl'],
+        artist: _queue[_queueIndex]['artist'],
+        songId: _queue[_queueIndex]['songId'],
+        instant: true,
+      );
+    } catch (e) {
+      debugPrint('Error fetching or playing similar song: $e');
+    }
+  }
+
   Future<void> lunchPlaylist(List<Map<String, dynamic>> playlist) async {
     clearQueue();
     for (var element in playlist) {
