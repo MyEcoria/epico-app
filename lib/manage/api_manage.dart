@@ -439,4 +439,20 @@ class MusicApiService {
       throw Exception('Error fetching artist tracks: $e');
     }
   }
+
+  Future<Map<String, dynamic>> getSimilarSong(String songId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/music/similar/$songId'),
+      );
+      if (response.statusCode == 200) {
+        debugPrint('Response: ${response.body}');
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to load similar song: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching similar song: $e');
+    }
+  }
 }

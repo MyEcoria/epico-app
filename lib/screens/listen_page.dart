@@ -316,6 +316,9 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   onShare: () {
                     // Implement share functionality
                   },
+                  onSimilar: () {
+                    widget.songManager.similarSong();
+                  },
                   isPlaying: isPlaying,
                   nextSongTitle: 'Save Your Tears',
                   nextSongArtist: 'The Weeknd',
