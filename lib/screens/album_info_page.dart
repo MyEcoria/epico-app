@@ -364,7 +364,6 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                           );
                         },
                         onToggleFavorite: () {},
-                        onShare: () {},
                         onSimilar: () {
                           widget.songManager.similarSong();
                         },

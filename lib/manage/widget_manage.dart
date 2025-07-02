@@ -26,7 +26,6 @@ class AudioPlayerWidget extends StatefulWidget {
   final String lyricsExcerpt;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
-  final VoidCallback onShare;
   final VoidCallback onSimilar;
   final bool isPlaying;
   final String nextSongTitle;
@@ -44,7 +43,6 @@ class AudioPlayerWidget extends StatefulWidget {
     required this.lyricsExcerpt,
     required this.isFavorite,
     required this.onToggleFavorite,
-    required this.onShare,
     required this.onSimilar,
     required this.isPlaying,
     required this.nextSongTitle,
@@ -439,10 +437,6 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                         },
                       );
                     },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
-                    onPressed: widget.onShare,
                   ),
                   IconButton(
                     icon: const Icon(Icons.shuffle, color: Colors.white),

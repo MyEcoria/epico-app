@@ -313,9 +313,6 @@ class _MusicAppHomePageState extends State<MusicAppHomePage> {
                   onToggleFavorite: () {
                     MusicApiService().createLike(currentSongState['songId'] as String? ?? '', authCookie!);
                   },
-                  onShare: () {
-                    // Implement share functionality
-                  },
                   onSimilar: () {
                     widget.songManager.similarSong();
                   },
