@@ -43,18 +43,19 @@ class GenreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String imagePath = 'assets/illustrator/${name.toLowerCase()}.svg';
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          Image.asset(
-            'assets/illustrator/${name.toLowerCase()}.png',
+          SvgPicture.asset(
+            imagePath,
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
-            color: overlayColor.withAlpha((255 * 0.2).round()),
-            colorBlendMode: BlendMode.srcOver,
+            colorFilter: ColorFilter.mode(overlayColor.withAlpha((255 * 0.2).round()), BlendMode.srcOver),
           ),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),

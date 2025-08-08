@@ -28,6 +28,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _animation;
   final SongManager songManager = SongManager();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   CacheService cache = CacheService();
@@ -36,9 +37,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 2),
       vsync: this,
-    )..repeat();
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.95, end: 1.05).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
     _checkAuth();
   }
 
@@ -84,19 +89,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/logo.svg',
-                  ),
-                ],
+              ScaleTransition(
+                scale: _animation,
+                child: SvgPicture.asset(
+                  'assets/illustrator/fox_mascot.svg',
+                  height: 120,
+                  width: 120,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Epico',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'For epitech students',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.white70,
                   fontSize: 16,
                 ),
               ),

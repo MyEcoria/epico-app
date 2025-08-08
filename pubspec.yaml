@@ -94,14 +94,15 @@ flutter:
     - assets/logo.svg
     - assets/vinyle.png
     - assets/undrawable/mail.svg
-    - assets/illustrator/tamil.png
-    - assets/illustrator/international.png
-    - assets/illustrator/pop.png
-    - assets/illustrator/hip-hop.png
-    - assets/illustrator/dance.png
-    - assets/illustrator/country.png
-    - assets/illustrator/indie.png
-    - assets/illustrator/jazz.png
+    - assets/illustrator/tamil.svg
+    - assets/illustrator/international.svg
+    - assets/illustrator/pop.svg
+    - assets/illustrator/hip-hop.svg
+    - assets/illustrator/dance.svg
+    - assets/illustrator/country.svg
+    - assets/illustrator/indie.svg
+    - assets/illustrator/jazz.svg
+    - assets/illustrator/fox_mascot.svg
 
 flutter_launcher_icons:
   android: true

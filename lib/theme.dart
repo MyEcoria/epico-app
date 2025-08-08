@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 
-const Color kAccentColor = Color(0xFFEF5466);
+const Color kAccentColor = Color(0xFF3498DB);
 
 final ThemeData appTheme = ThemeData(
   brightness: Brightness.dark,
